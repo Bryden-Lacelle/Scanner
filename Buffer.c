@@ -30,7 +30,6 @@ Function List:		b_create ();
 					b_getc_offset ();
 *****************************************************************************************************/
 #include "buffer.h"
-#include <stdlib.h>
 
 /*****************************************************************************************************
 Purpose:			Create and initialize a BufferDescriptor struct for use
@@ -106,15 +105,16 @@ Algorithm:			Uses b_isfull() to determine if the buffer is full.
 *****************************************************************************************************/
 pBuffer b_addc (pBuffer const pBD, char symbol)
 {
-	char* old_mem_address = pBD->cb_head; /* Variable to store the old memory address of cb_head */
+	char* old_mem_address; /* Variable to store the old memory address of cb_head */
 	if (!pBD) /* Return NULL if invalid parameters are found */
 		return NULL;
+	old_mem_address = pBD->cb_head;
 	pBD->r_flag = RESET_R_FLAG; /* Reset r_flag */
 	if (b_isfull(pBD)) /* Call b_isfull to determine if the buffer is full before adding a symbol */
 	{
 		if (pBD->mode == FIXED_MODE) /* Buffer can not be expanded in FIXED_MODE */
 			return NULL;
-		if (b_capacity(pBD) == SHRT_MAX || b_capacity(pBD) == R_FAIL_1) /* Buffer has reached it's max capacity no furthur expansion can be done */
+		if (b_capacity(pBD) == SHRT_MAX) /* Buffer has reached it's max capacity no furthur expansion can be done */
 				return NULL;
 		else if (pBD->mode == ADD_MODE) /* Expand buffer using additive mode */
 		{
@@ -127,16 +127,17 @@ pBuffer b_addc (pBuffer const pBD, char symbol)
 		{
 			short b_space = 0, incriment = 0; /* Initialize the availible space in the buffer and incriment for the capcity */
 			b_space = SHRT_MAX - b_capacity(pBD);
-			incriment = (short) (((long) b_space * pBD->inc_factor / 100.f) * sizeof(char));
+			incriment = (short) (((float) b_space * pBD->inc_factor / 100.f) * sizeof(char));
 			if ((short) (incriment + b_capacity(pBD)) == b_capacity(pBD)) /* Set capacity to SHRT_MAX if the result does not increase capacity */
 				pBD->capacity = SHRT_MAX;
 			else 
 				pBD->capacity += incriment;
 		}
-		else 
-			return NULL;
 		if ((pBD->cb_head = (char*) realloc(pBD->cb_head, pBD->capacity)) == NULL) /* reallocate memory for cb_head using the new capacity */
+		{
+			pBD->cb_head = old_mem_address;
 			return NULL;
+		}
 		if (old_mem_address != pBD->cb_head) /* Set r_flag if the new memory address of cb_head has changed */
 		{
 			pBD->r_flag = SET_R_FLAG;
@@ -224,6 +225,8 @@ Algorithm:			Returns the value of addc_offset
 *****************************************************************************************************/
 short b_size (Buffer* const pBD)
 {
+	if(!pBD)
+		return R_FAIL_1;
 	return pBD->addc_offset;
 }
 
@@ -362,7 +365,7 @@ int b_isempty (Buffer* const pBD)
 		return R_FAIL_1;
 	if (!pBD->addc_offset)
 		return 1;
-	if (pBD->addc_offset > 0)
+	if (pBD->addc_offset)
 		return 0;
 	else 
 		return R_FAIL_1;
@@ -433,7 +436,7 @@ int b_print (Buffer* const pBD)
 	if (pBD->addc_offset == 0) /* The buffer is empty return an error */
 	{
 		printf("The buffer is empty.\n");
-		return R_FAIL_1;
+		return char_count;
 	}
 	while(next_char = b_getc(pBD)) /* TRIGGERS WARNING: Intended declaration in conditional expression*/
 	{
@@ -458,12 +461,13 @@ Algorithm:			Attempts the shrink the buffer to the size of the characters stored
 *****************************************************************************************************/
 Buffer* b_pack (Buffer* const pBD)
 {
-	char* old_mem_address = pBD->cb_head; /* Old memory address of cb_head  */
+	char* old_mem_address; /* Old memory address of cb_head  */
 	if (!pBD)
 		return NULL;
+	old_mem_address = pBD->cb_head;
 	if (b_size(pBD) == SHRT_MAX) /* Buffer can not be resized */
 		return NULL;
-	pBD->capacity = (b_size(pBD) + sizeof(char)) * sizeof(char); /* Sets capacity equal to b_size + 1 char in chars */
+	pBD->capacity = b_size(pBD) * sizeof(char); /* Sets capacity equal to b_size + 1 char in chars */
 	pBD->r_flag = RESET_R_FLAG;
 	if ((pBD->cb_head = (char*) realloc(pBD->cb_head, pBD->capacity)) != NULL) /* Attempts to reallocate cb_head to capacity */
 		{
@@ -471,6 +475,7 @@ Buffer* b_pack (Buffer* const pBD)
 				pBD->r_flag = SET_R_FLAG;
 			return pBD;
 		}
+	pBD->cb_head = old_mem_address;
 	return NULL;
 }
 
