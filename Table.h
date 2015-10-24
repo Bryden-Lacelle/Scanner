@@ -98,7 +98,7 @@
 
 		PTR_AAF aa_table[ ] = {
 
-			NULL, NULL, aa_func02, aa_func03, NULL, aa_func05, NULL, NULL, aa_func08, NULL, aa_func10, NULL, aa_func12, aa_func12 /* change these last 2 to either 12 OR 13 */
+			NULL, NULL, *aa_func02, *aa_func03, NULL, *aa_func05, NULL, NULL, *aa_func08, NULL, *aa_func10, NULL, *aa_func12, *aa_func12 /* change these last 2 to either 12 OR 13 */
 
 			/*HERE YOU MUST PROVIDE AN INITIALIZATION FOR AN ARRAY OF POINTERS
 			TO ACCEPTING FUNCTIONS. THE ARRAY HAS THE SAME SIZE AS as_table[ ].
