@@ -40,33 +40,33 @@
 /* Global objects - variables */
 /* This buffer is used as a repository for string literals.
    It is defined in platy_st.c */
-extern Buffer *str_LTBL;	/* String literal table */
+extern Buffer *str_LTBL;	/*String literal table */
 int line;					/* current line number of the source code */
 extern int scerrnum;		/* defined in platy_st.c - run-time error number */
 
 /* Local(file) global objects - variables */
-static Buffer *lex_buf;		/*pointer to temporary lexeme buffer*/
+static Buffer *lex_buf;/*pointer to temporary lexeme buffer*/
 
 /* No other global variable declarations/definitiond are allowed */
 
-/* scanner.c static(local) function  prototypes */
+/* scanner.c static(local) function  prototypes */ 
 static int char_class(char c);					/* character class function */
 static int get_next_state(int, char, int *);	/* state machine function */
-static int iskeyword(char *kw_lexeme);			/* keywords lookup functuion */
-static long atool(char *lexeme);				/* converts octal string to decimal value */
+static int iskeyword(char * kw_lexeme);			/*keywords lookup functuion */
+static long atool(char * lexeme);				/* converts octal string to decimal value */
 
 int scanner_init(Buffer *sc_buf) {
-	if(b_isempty(sc_buf)) return EXIT_FAILURE;	/*1*/
+	if(b_isempty(sc_buf)) return EXIT_FAILURE;/*1*/
 	/* in case the buffer has been read previously  */
 	b_setmark(sc_buf, 0);
 	b_retract_to_mark(sc_buf);
 	b_reset(str_LTBL);
 	line = 1;
-	return EXIT_SUCCESS;	/*0*/
+	return EXIT_SUCCESS;/*0*/
 /*	scerrnum = 0;  *//*no need - global ANSI C */
 }
 
-Token mlwpar_next_token(Buffer *sc_buf)
+Token mlwpar_next_token(Buffer * sc_buf)
 {
 	Token t;			/* token to return after recognition */
 	unsigned char c;	/* input symbol */
@@ -86,190 +86,116 @@ which is being processed by the scanner.
         
         
       /*  DECLARE YOUR VARIABLES HERE IF NEEDED */
+	char vAND[] = {'A', 'N', 'D', '.'};
+	char vOR[] = {'O', 'R', '.'};
+	int i = -1;
+	int switch_AND_OR = 0;
+	short incriment = 0;
+	enum BOOL {FALSE, TRUE};
+	BOOL validString = FALSE;
+
+
         
                 
 		while(1)
 		{ /* endless loop broken by token returns it will generate a warning */
+                
+        /*GET THE NEXT SYMBOL FROM THE INPUT BUFFER */
+        
+        c = b_getc(sc_buf);
+
+
+
+/* special cases or token driven processing */
+
+/*WRITE YOUR CODE FOR PROCESSING THE SPECIAL CASES HERE. 
+COMMENTS AND STRING LITERALS ARE ALSO PROCESSED HERE.
+
+WHAT FOLLOWS IS A PSEUDO CODE. YOU CAN USE switch STATEMENT
+INSTEAD OF if-else TO PROCESS THE SPECIAL CASES
+DO NOT FORGET TO COUNT THE PROGRAM LINES*/
+   
+			if(c != SEOF_T)
+			{
+				if(c == ' ')
+				{
+					continue;
+				}
+				if(c == '{') { t.code = LBR_T; /*no attribute */ return t; }
+				else if(c == '}') { t.code = RBR_T; return t; }
 			
-			/*GET THE NEXT SYMBOL FROM THE INPUT BUFFER */
-			
-			c = b_getc(sc_buf);
+				if(c == '+') { t.code = ART_OP_T; t.attribute.arr_op = PLUS; return t; }
+				else if(c == '-') { t.code = ART_OP_T; t.attribute.arr_op = MINUS; return t; }
+				else if(c == '*') { t.code = ART_OP_T; t.attribute.arr_op = MULT; return t; }
+				else if(c == '/') { t.code = ART_OP_T; t.attribute.arr_op = DIV; return t; }
+				if(c == '=') 
+				{
+					c = b_getc(sc_buf);
+					if(c == '=') { t.code = REL_OP_T; t.attribute.rel_op = EQ; return t; }
+					else { t.code = ERR_T; return t; }
+				}
+				else if(c == '>') { t.code = REL_OP_T; t.attribute.rel_op = GT; return t; }
+				else if(c == '<') 
+				{
+					c = b_getc(sc_buf);
+					if(c == '>') { t.code = REL_OP_T; t.attribute.rel_op = NE; return t; }
+					else { t.code = REL_OP_T; t.attribute.rel_op = LT; return t; }
+				}
+				if (c = '.')
+				{
+					while(1)
+					{
+						++i;
+						c = b_getc(sc_buf);
+						switch(switch_AND_OR)
+						{
+						case 0:
+							if (c == vAND[i])
+								switch_AND_OR = 1;
+							else if (c == vOR[i])
+								switch_AND_OR = 2;
+							else 
+								{t.code = ERR_T; return t;}
+							break;
+						case 1:
+							if (c == vAND[i])
+								break;
+							else 
+								{t.code = ERR_T; return t;}	
+						case 2:
+							if (c == vOR[i])
+								break;
+							else 
+								{t.code = ERR_T; return t;}
+						}
+						if (i == 2 && switch_AND_OR == 2)
+							{ t.code = LOG_OP_T; t.attribute.log_op = OR; return t; }
+						if(i == 3 && switch_AND_OR == 1)
+							{ t.code = LOG_OP_T; t.attribute.log_op = AND; return t; }
+					}
+				}
+			}
 
-// start code comments
-//
-///* special cases or token driven processing */
-//
-///*WRITE YOUR CODE FOR PROCESSING THE SPECIAL CASES HERE. 
-//COMMENTS AND STRING LITERALS ARE ALSO PROCESSED HERE.
-//
-//WHAT FOLLOWS IS A PSEUDO CODE. YOU CAN USE switch STATEMENT
-//INSTEAD OF if-else TO PROCESS THE SPECIAL CASES
-//DO NOT FORGET TO COUNT THE PROGRAM LINES*/
-//			
-//			if(c != SEOF_T)
-//			{
-//				if(c == ' ')
-//				{
-//					//symbolstate = 0;
-//					continue;
-//				}
-//				
-//				if(c == '{') { t.code = LBR_T; /*no attribute */ return t; }
-//				else if(c == '}') { t.code = RBR_T; return t; }
-//				
-//				if(c == '+') { t.code = ART_OP_T; t.attribute.arr_op = PLUS; return t; }
-//				else if(c == '-') { t.code = ART_OP_T; t.attribute.arr_op = MINUS; return t; }
-//				else if(c == '*') { t.code = ART_OP_T; t.attribute.arr_op = MULT; return t; }
-//				else if(c == '/') { t.code = ART_OP_T; t.attribute.arr_op = DIV; return t; }
-//				
-//				if(c == '=') 
-//				{
-//					c = b_getc(sc_buf);
-//					if(c == '=') { t.code = REL_OP_T; t.attribute.rel_op = EQ; return t; }
-//					else { t.code = ERR_T; return t; }
-//				}
-//				else if(c == '>') { t.code = REL_OP_T; t.attribute.rel_op = GT; return t; }
-//				else if(c == '<') 
-//				{
-//					c = b_getc(sc_buf);
-//					if(c == '>') { t.code = REL_OP_T; t.attribute.rel_op = NE; return t; }
-//					else { t.code = REL_OP_T; t.attribute.rel_op = LT; return t; }
-//				}
-//			}
-//
-///*
-//		case 4:
-//			c = b_getc();
-//			if(c == ".AND.") { t.code = LOG_OP_T; t.attribute.log_op = AND; return t; }
-//			else if(c == ".OR.") { t.code = LOG_OP_T; t.attribute.log_op = OR; return t; }
-//	SEE BELOW
-//*/
-//
-///*
-//   IF (c == SOME CHARACTER)  
-//                       ...
-//       SKIP CHARACTER (FOR EXAMPLE SPACE)
-//       continue;      
-//       OR SET TOKEN (SET TOKEN CODE AND TOKEN ATTRIBUTE(IF AVAILABLE))
-//       return t;
-//   EXAMPLE:
-//*/
-//
-///*
-//	if(c == ' ') continue;
-//	if(c == '{') { t.code = LBR_T; return t; }
-//	if(c == '}') { t.code = RBR_T; return t; }
-//	if(c == '+') { t.code = ART_OP_T; t.attribute.arr_op = PLUS; return t; }
-//	if(c == '-') { t.code = ART_OP_T; t.attribute.arr_op = MINUS; return t; }
-//	if(c == '*') { t.code = ART_OP_T; t.attribute.arr_op = MULT; return t; }
-//	if(c == '/') { t.code = ART_OP_T; t.attribute.arr_op = DIV; return t; }
-//	if(c == "==") { t.code = REL_OP_T; t.attribute.rel_op = EQ; return t; }
-//	if(c == "<>") { t.code = REL_OP_T; t.attribute.rel_op = NE; return t; }
-//	if(c == '>') { t.code = REL_OP_T; t.attribute.rel_op = GT; return t; }
-//	if(c == '<') { t.code = REL_OP_T; t.attribute.rel_op = LT; return t; }
-//	if(c == ".AND.") { t.code = LOG_OP_T; t.attribute.log_op = AND; return t; }
-//	if(c == ".OR.") { t.code = LOG_OP_T; t.attribute.log_op = OR; return t; }
-//*/	
-//
-//	/* START LOGICAL EXPRESSIONS */
-//
-//	// IF (c == '.') TRY TO PROCESS .AND. or .OR.
-//	if(c == '.') {
-//		// TRY TO PROCESS .AND. or .OR.
-//		
-//
-//		// IF SOMETHING ELSE FOLLOWS . OR THE LAST . IS MISSING, RETURN AN ERROR TOKEN
-//		if(b_getc()) {
-//			return ERR_T;
-//		}
-//	}
-//	else				// OR THE LAST . IS MISSING
-//		return ERR_T;	// RETURN AN ERROR TOKEN
-//	
-//	// IF (c == '!') TRY TO PROCESS COMMENT
-//	if(c == '!') {
-//		/* try to process comment */
-//
-//	}
-//	
-//	// IF THE FOLLOWING IS NOT CHAR IS NOT < REPORT AN ERROR
-//	if((!STR_T) || (c != '<'))		// ?? want to say "not a character"
-//		return ERR_T;
-//	// ELSE IN A LOOP SKIP CHARACTERS UNTIL \n THEN continue;
-//	else {
-//		for(i = 0; i < strlen(/* character array */); i++) {
-//			if(c == '\n')
-//				continue;
-//		}
-//	}
-//
-//	// IF STRING (FOR EXAMPLE, "text") IS FOUND
-//	if(STR_T) {
-//		// SET MARK TO MARK THE BEGINNING OF THE STRING
-//		b_setmark(/*  */);
-//		if(/* string is legal */) {
-//			// USING b_addc(..), COPY THE text FROM INPUT BUFFER INTO str_LTBL
-//			strcpy(b_addc(str_LTBL), sc_buf);
-//			// ADD '\0' at the end make the string C-type string
-//			b_addc(sc_buf, '\0');
-//			// SET STRING TOKEN
-//			/* (the attribute of the string token is the offset from
-//			the beginning of the str_LTBL char buffer to the beginning
-//			of the string (TEXT in the example)) */
-//			
-//
-//
-//			return t;
-//		}
-//		else {
-//			// THE STRING LITERAL IS ILLEGAL
-//			str_LTBL = NULL;
-//			// SET ERROR TOKEN FOR ILLEGAL STRING (see assignment)
-//			// DO NOT STORE THE ILLEGAL STRINg IN THE str_LTBL
-//
-//
-//			return t;
-//		}
-//	}
-//
-//	// IF (c == ANOTHER CHARACTER)
-//	if(!STR_T) {
-//		// SET TOKEN
-//
-//
-//		return t;
-//	}
-//
-//	// IF (c is a digit OR c is a letter){
-//	if(c == INL_T || c == STR_T) {
-//		// SET THE MARK AT THE BEGINING OF THE LEXEME
-//		b_setmark(sc_buf, forward);
-//	}
-// end code comments
-
-//	CODE YOUR FINITE STATE MACHINE HERE (FSM or DFA)
-//	IT IMPLEMENTS THE FOLLOWING ALGORITHM:
-	while(1) {
-		state = 0;
-		c = b_getc(sc_buf);
-		state = get_next_state(state, c, &accept);
-		c = b_getc(sc_buf);
-		if(accept == NOAS) {
-			continue;
-		}
-		/* "token is found" code */
-		break;
-	} // end while(1)
-	aa_table[state];
-
-
-
-//	IF (c == '.') TRY TO PROCESS .AND. or .OR.
-//	IF SOMETHING ELSE FOLLOWS . OR THE LAST . IS MISSING
-//	RETURN AN ERROR TOKEN
+			if (c == '!')
+			{
+				if (c = b_getc(sc_buf) == '<')
+					{ while (c = b_getc(sc_buf) != '\n') {}  continue; }
+				else { t.code = ERR_T; t.attribute.err_lex[0] = '!'; t.attribute.err_lex[1] = c; return t; }
+			}
 //	IF (c == '!') TRY TO PROCESS COMMENT
 //	IF THE FOLLOWING IS NOT CHAR IS NOT < REPORT AN ERROR
-//	ELSE IN A LOOP SKIP CHARACTERS UNTIL \n THEN continue;
+//	ELSE IN A LOOP SKIP CHARACTERS UNTIL \n THEN continue
+			if (c == '"') // TO-DO Add first quote to buffer
+			{
+				b_setmark(sc_buf, b_getc_offset(sc_buf));
+				b_setmark(str_LTBL, b_mark(str_LTBL));
+				validString = (BOOL) copyString(sc_buf, str_LTBL, incriment = getString(sc_buf, 0));
+				if (!validString) { t.code = ERR_T; t.attribute = errString(sc_buf, t.attribute); return t; }
+				b_addc(str_LTBL, '\0'); 
+				t.code = STR_T; 
+				t.attribute.str_offset = b_mark(str_LTBL); 
+				b_setmark(str_LTBL, b_mark(str_LTBL) + incriment);
+			}
 //	...
 //	IF STRING (FOR EXAMPLE, "text") IS FOUND
 //		SET MARK TO MARK THE BEGINNING OF THE STRING
@@ -299,6 +225,19 @@ which is being processed by the scanner.
 //	SET THE MARK AT THE BEGINING OF THE LEXEME
 //	b_setmark(sc_buf,forward);
 //	....
+	while(1) 
+	{
+		state = 0;
+		c = b_getc(sc_buf);
+		state = get_next_state(state, c, &accept);
+		c = b_getc(sc_buf);
+		if(accept == NOAS) {
+			continue;
+		}
+		/* "token is found" code */
+		break;
+	} // end while(1)
+	aa_table[state];
 /*	CODE YOUR FINITE STATE MACHINE HERE (FSM or DFA)
 	IT IMPLEMENTS THE FOLLOWING ALGORITHM:
 	
@@ -351,7 +290,7 @@ int get_next_state(int state, char c, int *accept)
 	col = char_class(c);
 	next = st_table[state][col];
 #ifdef DEBUG
-printf("Input symbol: %c Row: %d Column: %d Next: %d \n", c, state, col, next);
+printf("Input symbol: %c Row: %d Column: %d Next: %d \n",c,state,col,next);
 #endif
 /*
 The assert(int test) macro can be used to add run-time diagnostic to programs
@@ -457,7 +396,6 @@ Token aa_func02(char lexeme[]) {
    FOR THE KEYWORD. THE ATTRIBUTE CODE FOR THE KEYWORD
    IS ITS INDEX IN THE KEYWORD LOOKUP TABLE (kw_table in table.h).
    IF THE LEXEME IS NOT A KEYWORD, GO TO STEP 2.
-
 2. SET a AVID TOKEN.
    IF THE lexeme IS LONGER than VID_LEN (see token.h) CHARACTERS,
    ONLY FIRST VID_LEN CHARACTERS ARE STORED 
@@ -625,4 +563,35 @@ int iskeyword(char *kw_lexeme) {
 	}
 
 	return -1;
+}
+
+int getString(Buffer* tsc_Buf, int counter)
+{
+	char c = b_getc(tsc_Buf);
+	if (c == SEOF_T || c == '\0') { b_retract_to_mark(tsc_Buf); return -1; }
+	if (c != '"') { return getString(tsc_Buf, ++counter); }
+	b_retract_to_mark(tsc_Buf);
+	return ++++counter;
+}
+
+int copyString(Buffer* s_Buf, Buffer* t_Buf, int counter)
+{
+	if (counter < 0)
+		return 0;
+	if (counter > 0 ) { b_addc(t_Buf, b_getc(s_Buf)); return copyString(s_Buf, t_Buf, --counter); }
+	return 1;
+}
+
+TA errString(Buffer* tsc_Buf, TA errToken)
+{
+	char counter = -1;
+	char c = b_getc(tsc_Buf);
+	while (++counter < ERR_LEN - 3)
+	{
+		if (c == SEOF_T || c == '\0') { errToken.err_lex[counter] = c; return errToken; }
+		errToken.err_lex[counter] = c;
+	}
+	for (counter; counter < VID_LEN; ++counter)
+		errToken.err_lex[counter] = '.';
+	return errToken;
 }
