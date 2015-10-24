@@ -91,9 +91,11 @@ which is being processed by the scanner.
 	int i = -1;
 	int switch_AND_OR = 0;
 	short incriment = 0;
-	enum BOOL {FALSE, TRUE};
+	typedef enum {FALSE, TRUE} BOOL;
 	BOOL validString = FALSE;
-
+	TA errorString (Buffer*, TA);
+	int copyString(Buffer*, Buffer*, int);
+	int getString(Buffer*, int);
 
         
                 
@@ -190,7 +192,7 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 				b_setmark(sc_buf, b_getc_offset(sc_buf));
 				b_setmark(str_LTBL, b_mark(str_LTBL));
 				validString = (BOOL) copyString(sc_buf, str_LTBL, incriment = getString(sc_buf, 0));
-				if (!validString) { t.code = ERR_T; t.attribute = errString(sc_buf, t.attribute); return t; }
+				if (!validString) { t.code = ERR_T; t.attribute = errorString(sc_buf, t.attribute); return t; }
 				b_addc(str_LTBL, '\0'); 
 				t.code = STR_T; 
 				t.attribute.str_offset = b_mark(str_LTBL); 
@@ -441,11 +443,12 @@ Token aa_func08(char lexeme[]) {
 	Token t;
 
 	if(atof(lexeme) >= FLT_MIN && atof(lexeme) <= FLT_MAX) {
-		t.attribute.flt_value = atof(lexeme);
+		t.code = FPL_T;
+		t.attribute.flt_value = (float) atof(lexeme);
 		return t;
 	}
-
-	t.attribute.err_lex;
+	t.code = ERR_T;
+	*t.attribute.err_lex = *lexeme;
 	return t;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME TO A FLOATING POINT VALUE,
@@ -467,8 +470,8 @@ Token aa_func05(char lexeme[]) {
 		t.attribute.int_value = atoi(lexeme);
 		return t;
 	}
-
-	t.attribute.err_lex;
+	t.code = ERR_T;
+	*t.attribute.err_lex = *lexeme;
 	return t;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING A DECIMAL CONSTANT AND 0
@@ -491,7 +494,8 @@ Token aa_func10(char lexeme[]) {
 		return t;
 	}
 
-	t.attribute.err_lex;
+	t.code = ERR_T;
+	*t.attribute.err_lex = *lexeme;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING AN OCTAL CONSTANT
 TO A DECIMAL INTEGER VALUE WHICH IS THE ATTRIBUTE FOR THE TOKEN.
@@ -520,7 +524,7 @@ Token aa_func12(char lexeme[]) {
 		}
 		return t;
 	}
-
+	t.code = ERR_T;
 /*THE FUNCTION SETS THE ERROR TOKEN. lexeme[] CONTAINS THE ERROR
 THE ATTRIBUTE OF THE ERROR TOKEN IS THE lexeme ITSELF
 AND IT MUST BE STORED in err_lex.  IF THE ERROR LEXEME IS LONGER
@@ -552,7 +556,6 @@ FOR EXAMPLE*/
 int iskeyword(char *kw_lexeme) {
 
 	int i = 0;
-	char *p;
 
 	// checks lexeme for keyword
 	for(i = 0; i < KWT_SIZE; i++) {
@@ -571,7 +574,7 @@ int getString(Buffer* tsc_Buf, int counter)
 	if (c == SEOF_T || c == '\0') { b_retract_to_mark(tsc_Buf); return -1; }
 	if (c != '"') { return getString(tsc_Buf, ++counter); }
 	b_retract_to_mark(tsc_Buf);
-	return ++++counter;
+	return counter += 2;
 }
 
 int copyString(Buffer* s_Buf, Buffer* t_Buf, int counter)
@@ -582,7 +585,7 @@ int copyString(Buffer* s_Buf, Buffer* t_Buf, int counter)
 	return 1;
 }
 
-TA errString(Buffer* tsc_Buf, TA errToken)
+TA errorString(Buffer* tsc_Buf, TA errToken)
 {
 	char counter = -1;
 	char c = b_getc(tsc_Buf);
