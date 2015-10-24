@@ -225,6 +225,19 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 //	SET THE MARK AT THE BEGINING OF THE LEXEME
 //	b_setmark(sc_buf,forward);
 //	....
+	while(1) 
+	{
+		state = 0;
+		c = b_getc(sc_buf);
+		state = get_next_state(state, c, &accept);
+		c = b_getc(sc_buf);
+		if(accept == NOAS) {
+			continue;
+		}
+		/* "token is found" code */
+		break;
+	} // end while(1)
+	aa_table[state];
 /*	CODE YOUR FINITE STATE MACHINE HERE (FSM or DFA)
 	IT IMPLEMENTS THE FOLLOWING ALGORITHM:
 	
@@ -314,9 +327,30 @@ or #undef DEBUF is used - see the top of the file.
 	return next;
 }
 
-int char_class (char c)
+int char_class(char c)
 {
-        int val;
+	int val;
+
+	if(isalpha(c)) {
+		val = 0;
+	}
+	else if(c == '0') {
+		val = 1;
+	}
+	else if(c >= 1 && c <= 7) {
+		val = 2;
+	}
+	else if(c == '8' || c == '9') {
+		val = 3;
+	}
+	else if(c == '.') {
+		val = 4;
+	}
+	else if(c == '%') {
+		val = 5;
+	}
+	else
+		val = 6;
 
 /*THIS FUNCTION RETURNS THE COLUMN NUMBER IN THE TRANSITION
 TABLE st_table FOR THE INPUT CHARACTER c.
@@ -324,19 +358,37 @@ SOME COLUMNS MAY REPRESENT A CHARACTER CLASS .
 FOR EXAMPLE IF COLUMN 1 REPRESENTS [A-Z]
 THE FUNCTION RETURNS 1 EVERY TIME c IS ONE
 OF THE LETTERS A,B,...,Z.*/
-        
-        return val;
+
+	return val;
 }
 
 
 
 /*HERE YOU WRITE THE DEFINITIONS FOR YOUR ACCEPTING FUNCTIONS. 
-************************************************************
+*************************************************************/
 
-ACCEPTING FUNCTION FOR THE arithmentic variable identifier AND keywords (VID - AVID/KW)
+/*ACCEPTING FUNCTION FOR THE arithmentic variable identifier AND keywords (VID - AVID/KW)
 REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER*/
 
-Token aa_func02(char lexeme[]){
+Token aa_func02(char lexeme[]) {
+	int i = 0;
+	int kw_Index;
+	Token t;
+	
+	if((kw_Index = iskeyword(lexeme)) != -1) {
+		t.code = KW_T;
+		t.attribute.kwt_idx = kw_Index;
+		return t;
+	}
+	else {
+		t.code = AVID_T;
+		if(strlen(lexeme) < VID_LEN) {
+			for(i = 0; i < VID_LEN; i++) {
+				t.attribute.vid_lex[i] = lexeme[i];
+			}
+			t.attribute.vid_lex[VID_LEN] = '\0';
+		}
+	}
 
 /*WHEN CALLED THE FUNCTION MUST
 1. CHECK IF THE LEXEME IS A KEYWORD.
@@ -344,19 +396,32 @@ Token aa_func02(char lexeme[]){
    FOR THE KEYWORD. THE ATTRIBUTE CODE FOR THE KEYWORD
    IS ITS INDEX IN THE KEYWORD LOOKUP TABLE (kw_table in table.h).
    IF THE LEXEME IS NOT A KEYWORD, GO TO STEP 2.
-
 2. SET a AVID TOKEN.
    IF THE lexeme IS LONGER than VID_LEN (see token.h) CHARACTERS,
    ONLY FIRST VID_LEN CHARACTERS ARE STORED 
-   INTO THE VARIABLE ATTRIBUTE ARRAY vid_lex[](see token.h) .
+   INTO THE VARIABLE ATTRIBUTE ARRAY vid_lex[] (see token.h).
    ADD \0 AT THE END TO MAKE A C-type STRING.*/
   return t;
 }
 
-//ACCEPTING FUNCTION FOR THE string variable identifier (VID - SVID)
-//REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER
 
-Token aa_func03(char lexeme[]){
+/*ACCEPTING FUNCTION FOR THE string variable identifier (VID - SVID)
+REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER*/
+
+Token aa_func03(char lexeme[]) {
+	Token t;
+	int i = 0;
+
+	// set SVID token
+	t.code = SVID_T;
+
+	if(strlen(lexeme) < VID_LEN) {
+		for(i = 0; i < VID_LEN-1; i++) {
+			t.attribute.vid_lex[i] = lexeme[i];
+		}
+		t.attribute.vid_lex[VID_LEN-1] = '%';
+		t.attribute.vid_lex[VID_LEN] = '\0';
+	}
 
 /*WHEN CALLED THE FUNCTION MUST
 1. SET a SVID TOKEN.
@@ -369,74 +434,136 @@ Token aa_func03(char lexeme[]){
   return t;
 }
 
-//ACCEPTING FUNCTION FOR THE floating-point literal (FPL)
 
-Token aa_func08(char lexeme[]){
+/*ACCEPTING FUNCTION FOR THE floating-point literal (FPL)*/
+
+Token aa_func08(char lexeme[]) {
+	Token t;
+
+	if(atof(lexeme) >= FLT_MIN && atof(lexeme) <= FLT_MAX) {
+		t.attribute.flt_value = atof(lexeme);
+		return t;
+	}
+
+	t.attribute.err_lex;
+	return t;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME TO A FLOATING POINT VALUE,
 WHICH IS THE ATTRIBUTE FOR THE TOKEN.
 THE VALUE MUST BE IN THE SAME RANGE AS the value of 4-byte float in C.
 IN CASE OF ERROR (OUT OF RANGE) THE FUNCTION MUST RETURN ERROR TOKEN
 THE ERROR TOKEN ATTRIBUTE IS  lexeme*/
-  return t;
+
+	return t;
 }
 
-//ACCEPTING FUNCTION FOR THE integer literal(IL) - decimal constant (DIL) AND ZERO (0)
 
-Token aa_func05(char lexeme[]){
+/*ACCEPTING FUNCTION FOR THE integer literal(IL) - decimal constant (DIL) AND ZERO (0)*/
+
+Token aa_func05(char lexeme[]) {
+	Token t;
+
+	if(atoi(lexeme) >= SHRT_MIN && atoi(lexeme) <= SHRT_MAX) {
+		t.attribute.int_value = atoi(lexeme);
+		return t;
+	}
+
+	t.attribute.err_lex;
+	return t;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING A DECIMAL CONSTANT AND 0
 TO A DECIMAL INTEGER VALUE, WHICH IS THE ATTRIBUTE FOR THE TOKEN.
 THE VALUE MUST BE IN THE SAME RANGE AS the value of 2-byte int in C.
 IN CASE OF ERROR (OUT OF RANGE) THE FUNCTION MUST RETURN ERROR TOKEN
 THE ERROR TOKEN ATTRIBUTE IS  lexeme*/
-  return t;
+	
+	return t;
 }
 
-//ACCEPTING FUNCTION FOR THE integer literal(IL) - octal constant (OIL)
 
-Token aa_func10(char lexeme[]){
+/*ACCEPTING FUNCTION FOR THE integer literal(IL) - octal constant (OIL)*/
+
+Token aa_func10(char lexeme[]) {
+	Token t;
+
+	if(atool(lexeme) >= SHRT_MIN && atool(lexeme) <= SHRT_MAX) {
+		t.attribute.int_value = atool(lexeme);
+		return t;
+	}
+
+	t.attribute.err_lex;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING AN OCTAL CONSTANT
 TO A DECIMAL INTEGER VALUE WHICH IS THE ATTRIBUTE FOR THE TOKEN.
 THE VALUE MUST BE IN THE SAME RANGE AS the value of 2-byte int in C.
 THIS FUNCTION IS SIMILAR TO THE FUNCTION ABOVE AND THEY CAN BE
 COMBINED INTO ONE FUNCTION
-THE MAIN DIFFERENCE IE THAT THIS FUNCTION CALLS
-THE FUNCTION atool(char * lexeme) WHICH CONVERTS AN ASCII STRING
+THE MAIN DIFFERENCE IS THAT THIS FUNCTION CALLS
+THE FUNCTION atool(char *lexeme) WHICH CONVERTS AN ASCII STRING
 REPRESENTING AN OCTAL NUMBER TO INTEGER VALUE
 IN CASE OF ERROR (OUT OF RANGE) THE FUNCTION MUST RETURN ERROR TOKEN
 THE ERROR TOKEN ATTRIBUTE IS  lexeme*/
-
-  return t;
+	
+	return t;
 }
 
-//ACCEPTING FUNCTION FOR THE ERROR TOKEN 
+
+/*ACCEPTING FUNCTION FOR THE ERROR TOKEN*/
 /* could be either 12 OR 13; will be clear once we check against his test files */
-Token aa_funcXX(char lexeme[]){
+Token aa_func12(char lexeme[]) {
+	Token t;
+	int i = 0;
+
+	if(strlen(lexeme) > ERR_LEN) {
+		for(i = 0; i < ERR_LEN; i++) {
+			t.attribute.err_lex[i] = lexeme[i];
+		}
+		return t;
+	}
 
 /*THE FUNCTION SETS THE ERROR TOKEN. lexeme[] CONTAINS THE ERROR
 THE ATTRIBUTE OF THE ERROR TOKEN IS THE lexeme ITSELF
 AND IT MUST BE STORED in err_lex.  IF THE ERROR LEXEME IS LONGER
-than ERR_LEN caharacters, only the first ERR_LEN character are
+than ERR_LEN caharacters, only the first ERR_LEN characters are
 stored in err_lex.*/
 
-  return t;
+	return t;
 }
 
 
-//CONVERSION FUNCTION
+/*CONVERSION FUNCTION*/
 
-	long atool(char * lexeme){}
-/*
-THE FUNCTION CONVERTS AN ASCII STRING
-REPRESENTING AN OCTAL INTEGER CONSTANT TO INTEGER VALUE
+long atool(char *lexeme) {
+
+/*THE FUNCTION CONVERTS AN ASCII STRING
+REPRESENTING AN OCTAL INTEGER CONSTANT TO INTEGER VALUE*/
+
+	char *ptr;
+	long int x;
+
+	x = strtol(lexeme, &ptr, 8);
+
+	return x;
 }
 
-HERE YOU WRITE YOUR ADDITIONAL FUNCTIONS (IF ANY).
-FOR EXAMPLE?*/
+/*HERE YOU WRITE YOUR ADDITIONAL FUNCTIONS (IF ANY).
+FOR EXAMPLE*/
 
-int iskeyword(char * kw_lexeme){}
+int iskeyword(char *kw_lexeme) {
+
+	int i = 0;
+	char *p;
+
+	// checks lexeme for keyword
+	for(i = 0; i < KWT_SIZE; i++) {
+		// if keyword is found
+		if(strstr(kw_lexeme, kw_table[i]) != NULL) {
+			return i;
+		}
+	}
+
+	return -1;
+}
 
 int getString(Buffer* tsc_Buf, int counter)
 {
