@@ -90,10 +90,14 @@ which is being processed by the scanner.
 	char vOR[] = {'O', 'R', '.'};
 	int i = -1;
 	int switch_AND_OR = 0;
-	short incriment = 0;
-	enum BOOL {FALSE, TRUE};
+	short increment = 0;
+	typedef enum {FALSE, TRUE} BOOL;
 	BOOL validString = FALSE;
-
+	Token errorString(Buffer*);
+	int copyString(Buffer*, Buffer*, int);
+	short getString(Buffer*, short);
+	char errComment[3] = {'!', NULL, '\0'};
+	static short str_LTBL_mark = 0;
 
         
                 
@@ -101,7 +105,6 @@ which is being processed by the scanner.
 		{ /* endless loop broken by token returns it will generate a warning */
                 
         /*GET THE NEXT SYMBOL FROM THE INPUT BUFFER */
-        
         c = b_getc(sc_buf);
 
 
@@ -114,7 +117,7 @@ COMMENTS AND STRING LITERALS ARE ALSO PROCESSED HERE.
 WHAT FOLLOWS IS A PSEUDO CODE. YOU CAN USE switch STATEMENT
 INSTEAD OF if-else TO PROCESS THE SPECIAL CASES
 DO NOT FORGET TO COUNT THE PROGRAM LINES*/
-   
+		if (c == 255) { t.code = SEOF_T; return t; }
 			if(c != SEOF_T)
 			{
 				if(c == ' ')
@@ -141,7 +144,7 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 					if(c == '>') { t.code = REL_OP_T; t.attribute.rel_op = NE; return t; }
 					else { t.code = REL_OP_T; t.attribute.rel_op = LT; return t; }
 				}
-				if (c = '.')
+				if (c == '.')
 				{
 					while(1)
 					{
@@ -178,23 +181,39 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 
 			if (c == '!')
 			{
-				if (c = b_getc(sc_buf) == '<')
-					{ while (c = b_getc(sc_buf) != '\n') {}  continue; }
-				else { t.code = ERR_T; t.attribute.err_lex[0] = '!'; t.attribute.err_lex[1] = c; return t; }
+				if ((c = b_getc(sc_buf)) == '<')
+				{
+					while ((c = b_getc(sc_buf)) != '\n') {}
+				}
+				else 
+				{ 
+					t.code = ERR_T; 
+					errComment[1] = c;
+					t.attribute.err_lex[0] = errComment[0]; 
+					t.attribute.err_lex[1] = errComment[1]; 
+					t.attribute.err_lex[2] = errComment[2]; 
+					while ((c = b_getc(sc_buf)) != '\n') {}
+					return t; 
+				}
+				continue;
 			}
+			//printf("get_c_offset:%d", b_getc_offset(sc_buf));
+			//printf("char:%c\n", c);
 //	IF (c == '!') TRY TO PROCESS COMMENT
 //	IF THE FOLLOWING IS NOT CHAR IS NOT < REPORT AN ERROR
 //	ELSE IN A LOOP SKIP CHARACTERS UNTIL \n THEN continue
 			if (c == '"') // TO-DO Add first quote to buffer
 			{
+				b_retract(sc_buf);
 				b_setmark(sc_buf, b_getc_offset(sc_buf));
-				b_setmark(str_LTBL, b_mark(str_LTBL));
-				validString = (BOOL) copyString(sc_buf, str_LTBL, incriment = getString(sc_buf, 0));
-				if (!validString) { t.code = ERR_T; t.attribute = errString(sc_buf, t.attribute); return t; }
+				//b_setmark(str_LTBL, b_mark(str_LTBL));
+				validString = (BOOL) copyString(sc_buf, str_LTBL, increment = getString(sc_buf, 0));
+				if (!validString) { t = errorString(sc_buf); return t; }
 				b_addc(str_LTBL, '\0'); 
 				t.code = STR_T; 
-				t.attribute.str_offset = b_mark(str_LTBL); 
-				b_setmark(str_LTBL, b_mark(str_LTBL) + incriment);
+				t.attribute.str_offset = str_LTBL_mark; 
+				str_LTBL_mark += increment + 1;
+				return t;
 			}
 //	...
 //	IF STRING (FOR EXAMPLE, "text") IS FOUND
@@ -225,10 +244,11 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 //	SET THE MARK AT THE BEGINING OF THE LEXEME
 //	b_setmark(sc_buf,forward);
 //	....
+			if (!isalpha(c))
+				continue;
+	b_setmark(sc_buf, b_getc_offset(sc_buf));
 	while(1) 
 	{
-		state = 0;
-		c = b_getc(sc_buf);
 		state = get_next_state(state, c, &accept);
 		c = b_getc(sc_buf);
 		if(accept == NOAS) {
@@ -237,7 +257,7 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 		/* "token is found" code */
 		break;
 	} // end while(1)
-	aa_table[state];
+	//aa_table[state];
 /*	CODE YOUR FINITE STATE MACHINE HERE (FSM or DFA)
 	IT IMPLEMENTS THE FOLLOWING ALGORITHM:
 	
@@ -247,9 +267,21 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 	FSM2. Get the next character
 	FSM3. If the state is not accepting (accept == NOAS), go to step FSM1
 		If the step is accepting, token is found, leave the machine and
-		call an accepting function as described below.
-	
-	
+		call an accepting function as described below.*/
+	if (state == 2 || state == 5 || state == 8 || state == 10 || state == 13)
+		//b_retract(sc_buf);
+	lexstart = b_mark(sc_buf);
+	lexend = b_getc_offset(sc_buf);
+	lex_buf = b_create(b_capacity(sc_buf), 0, 'f');
+	b_retract_to_mark(sc_buf);
+	while (b_getc_offset(sc_buf) < lexend)
+	{
+		b_addc(lex_buf, c = b_getc(sc_buf));
+	}
+	t = aa_table[state](b_setmark(lex_buf, 0));
+	b_destroy(lex_buf);
+	return t;
+  /*  
   RETRACT  getc_offset IF THE FINAL STATE IS A RETRACTING FINAL STATE
   GET THE BEGINNING AND THE END OF THE LEXEME
   lexstart = b_getmark(sc_buf);
@@ -289,6 +321,7 @@ int get_next_state(int state, char c, int *accept)
 	int next;
 	col = char_class(c);
 	next = st_table[state][col];
+#define DEBUG
 #ifdef DEBUG
 printf("Input symbol: %c Row: %d Column: %d Next: %d \n",c,state,col,next);
 #endif
@@ -337,7 +370,7 @@ int char_class(char c)
 	else if(c == '0') {
 		val = 1;
 	}
-	else if(c >= 1 && c <= 7) {
+	else if(c >= '1' && c <= '7') {
 		val = 2;
 	}
 	else if(c == '8' || c == '9') {
@@ -441,11 +474,12 @@ Token aa_func08(char lexeme[]) {
 	Token t;
 
 	if(atof(lexeme) >= FLT_MIN && atof(lexeme) <= FLT_MAX) {
-		t.attribute.flt_value = atof(lexeme);
+		t.code = FPL_T;
+		t.attribute.flt_value = (float) atof(lexeme);
 		return t;
 	}
-
-	t.attribute.err_lex;
+	t.code = ERR_T;
+	*t.attribute.err_lex = *lexeme;
 	return t;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME TO A FLOATING POINT VALUE,
@@ -454,7 +488,6 @@ THE VALUE MUST BE IN THE SAME RANGE AS the value of 4-byte float in C.
 IN CASE OF ERROR (OUT OF RANGE) THE FUNCTION MUST RETURN ERROR TOKEN
 THE ERROR TOKEN ATTRIBUTE IS  lexeme*/
 
-	return t;
 }
 
 
@@ -467,8 +500,8 @@ Token aa_func05(char lexeme[]) {
 		t.attribute.int_value = atoi(lexeme);
 		return t;
 	}
-
-	t.attribute.err_lex;
+	t.code = ERR_T;
+	*t.attribute.err_lex = *lexeme;
 	return t;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING A DECIMAL CONSTANT AND 0
@@ -477,7 +510,6 @@ THE VALUE MUST BE IN THE SAME RANGE AS the value of 2-byte int in C.
 IN CASE OF ERROR (OUT OF RANGE) THE FUNCTION MUST RETURN ERROR TOKEN
 THE ERROR TOKEN ATTRIBUTE IS  lexeme*/
 	
-	return t;
 }
 
 
@@ -491,7 +523,8 @@ Token aa_func10(char lexeme[]) {
 		return t;
 	}
 
-	t.attribute.err_lex;
+	t.code = ERR_T;
+	*t.attribute.err_lex = *lexeme;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING AN OCTAL CONSTANT
 TO A DECIMAL INTEGER VALUE WHICH IS THE ATTRIBUTE FOR THE TOKEN.
@@ -520,7 +553,7 @@ Token aa_func12(char lexeme[]) {
 		}
 		return t;
 	}
-
+	t.code = ERR_T;
 /*THE FUNCTION SETS THE ERROR TOKEN. lexeme[] CONTAINS THE ERROR
 THE ATTRIBUTE OF THE ERROR TOKEN IS THE lexeme ITSELF
 AND IT MUST BE STORED in err_lex.  IF THE ERROR LEXEME IS LONGER
@@ -552,7 +585,6 @@ FOR EXAMPLE*/
 int iskeyword(char *kw_lexeme) {
 
 	int i = 0;
-	char *p;
 
 	// checks lexeme for keyword
 	for(i = 0; i < KWT_SIZE; i++) {
@@ -565,13 +597,14 @@ int iskeyword(char *kw_lexeme) {
 	return -1;
 }
 
-int getString(Buffer* tsc_Buf, int counter)
+short getString(Buffer* tsc_Buf, short counter)
 {
 	char c = b_getc(tsc_Buf);
-	if (c == SEOF_T || c == '\0') { b_retract_to_mark(tsc_Buf); return -1; }
+	if (c == '\0') { b_retract_to_mark(tsc_Buf); return -1; }
 	if (c != '"') { return getString(tsc_Buf, ++counter); }
+	else if (counter == 0) {return getString(tsc_Buf, ++counter); }
 	b_retract_to_mark(tsc_Buf);
-	return ++++counter;
+	return ++counter;
 }
 
 int copyString(Buffer* s_Buf, Buffer* t_Buf, int counter)
@@ -582,16 +615,18 @@ int copyString(Buffer* s_Buf, Buffer* t_Buf, int counter)
 	return 1;
 }
 
-TA errString(Buffer* tsc_Buf, TA errToken)
+Token errorString(Buffer* tsc_Buf)
 {
+	Token errToken;
 	char counter = -1;
 	char c = b_getc(tsc_Buf);
+	errToken.code = ERR_T;
 	while (++counter < ERR_LEN - 3)
 	{
-		if (c == SEOF_T || c == '\0') { errToken.err_lex[counter] = c; return errToken; }
-		errToken.err_lex[counter] = c;
+		if (c == SEOF_T || c == '\0') { errToken.attribute.err_lex[counter] = c; return errToken; }
+		errToken.attribute.err_lex[counter] = c;
 	}
 	for (counter; counter < VID_LEN; ++counter)
-		errToken.err_lex[counter] = '.';
+		errToken.attribute.err_lex[counter] = '.';
 	return errToken;
 }
