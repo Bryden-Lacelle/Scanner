@@ -96,6 +96,7 @@ which is being processed by the scanner.
 	Token errorString(Buffer*);
 	int copyString(Buffer*, Buffer*, int);
 	short getString(Buffer*, short);
+	Token errSymbol(char);
 	char errComment[3] = {'!', NULL, '\0'};
 	static short str_LTBL_mark = 0;
 
@@ -118,12 +119,14 @@ WHAT FOLLOWS IS A PSEUDO CODE. YOU CAN USE switch STATEMENT
 INSTEAD OF if-else TO PROCESS THE SPECIAL CASES
 DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 		if (c == 255) { t.code = SEOF_T; return t; }
+		
 			if(c != SEOF_T)
 			{
-				if(c == ' ')
+				if(c == ' ' || c == '\n' || c == 'LF' || c == 'CR' || c == 'CRLF' || c == '\t')
 				{
 					continue;
 				}
+				if (c == ';') { t.code = EOS_T; return t;}
 				if(c == '{') { t.code = LBR_T; /*no attribute */ return t; }
 				else if(c == '}') { t.code = RBR_T; return t; }
 			
@@ -135,6 +138,11 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 				{
 					c = b_getc(sc_buf);
 					if(c == '=') { t.code = REL_OP_T; t.attribute.rel_op = EQ; return t; }
+					else if(c == '+') { t.code = ART_OP_T; t.attribute.arr_op = PLUS; return t; }
+					else if(c == '-') { t.code = ART_OP_T; t.attribute.arr_op = MINUS; return t; }
+					else if(c == '*') { t.code = ART_OP_T; t.attribute.arr_op = MULT; return t; }
+					else if(c == '/') { t.code = ART_OP_T; t.attribute.arr_op = DIV; return t; }
+					else if(c == ' ') { t.code = ASS_OP_T; return t; }
 					else { t.code = ERR_T; return t; }
 				}
 				else if(c == '>') { t.code = REL_OP_T; t.attribute.rel_op = GT; return t; }
@@ -158,18 +166,18 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 							else if (c == vOR[i])
 								switch_AND_OR = 2;
 							else 
-								{t.code = ERR_T; return t;}
+								{t = errSymbol('.'); return t;}
 							break;
 						case 1:
 							if (c == vAND[i])
 								break;
 							else 
-								{t.code = ERR_T; return t;}	
+								{t = errSymbol('.'); return t;}	
 						case 2:
 							if (c == vOR[i])
 								break;
 							else 
-								{t.code = ERR_T; return t;}
+								{t = errSymbol('.'); return t;}
 						}
 						if (i == 2 && switch_AND_OR == 2)
 							{ t.code = LOG_OP_T; t.attribute.log_op = OR; return t; }
@@ -243,18 +251,17 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
   
 //	SET THE MARK AT THE BEGINING OF THE LEXEME
 //	b_setmark(sc_buf,forward);
-//	....
-			if (!isalpha(c))
-				continue;
+//	...
+	if (!isalpha(c) && !isdigit(c)) { t = errSymbol(c); return t; }
 	b_setmark(sc_buf, b_getc_offset(sc_buf));
+	//b_retract(sc_buf);
 	while(1) 
 	{
 		state = get_next_state(state, c, &accept);
-		c = b_getc(sc_buf);
 		if(accept == NOAS) {
+			c = b_getc(sc_buf);
 			continue;
 		}
-		/* "token is found" code */
 		break;
 	} // end while(1)
 	//aa_table[state];
@@ -274,12 +281,16 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 	lexend = b_getc_offset(sc_buf);
 	lex_buf = b_create(b_capacity(sc_buf), 0, 'f');
 	b_retract_to_mark(sc_buf);
-	while (b_getc_offset(sc_buf) < lexend)
+	b_retract(sc_buf);
+	while (b_getc_offset(sc_buf) < lexend - 1)
 	{
 		b_addc(lex_buf, c = b_getc(sc_buf));
 	}
+	b_addc(lex_buf,'\0');
 	t = aa_table[state](b_setmark(lex_buf, 0));
 	b_destroy(lex_buf);
+	if (t.code == SVID_T)
+		b_getc(sc_buf);
 	return t;
   /*  
   RETRACT  getc_offset IF THE FINAL STATE IS A RETRACTING FINAL STATE
@@ -313,7 +324,7 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 
 
 /*DO NOT MODIFY THE CODE OF THIS FUNCTION
-YOU CAN REMOVE THE COMMENTS*/
+YOU CAN REMOVE THE COMMENTS*/ 
 
 int get_next_state(int state, char c, int *accept)
 {
@@ -321,7 +332,6 @@ int get_next_state(int state, char c, int *accept)
 	int next;
 	col = char_class(c);
 	next = st_table[state][col];
-#define DEBUG
 #ifdef DEBUG
 printf("Input symbol: %c Row: %d Column: %d Next: %d \n",c,state,col,next);
 #endif
@@ -407,19 +417,30 @@ Token aa_func02(char lexeme[]) {
 	int i = 0;
 	int kw_Index;
 	Token t;
-	
+	//printf("lexeme: %s", lexeme);
 	if((kw_Index = iskeyword(lexeme)) != -1) {
 		t.code = KW_T;
 		t.attribute.kwt_idx = kw_Index;
 		return t;
 	}
-	else {
+	else 
+	{
 		t.code = AVID_T;
-		if(strlen(lexeme) < VID_LEN) {
-			for(i = 0; i < VID_LEN; i++) {
+		if(strlen(lexeme) >= VID_LEN) 
+		{
+			for(i = 0; i < VID_LEN; i++)
+			{
 				t.attribute.vid_lex[i] = lexeme[i];
 			}
-			t.attribute.vid_lex[VID_LEN] = '\0';
+		t.attribute.vid_lex[VID_LEN] = '\0';
+		}
+		else 
+		{
+			for(i = 0; i < strlen(lexeme); i++)
+			{
+				t.attribute.vid_lex[i] = lexeme[i];
+			}
+			t.attribute.vid_lex[strlen(lexeme)] = '\0';
 		}
 	}
 
@@ -447,14 +468,24 @@ Token aa_func03(char lexeme[]) {
 
 	// set SVID token
 	t.code = SVID_T;
-
-	if(strlen(lexeme) < VID_LEN) {
-		for(i = 0; i < VID_LEN-1; i++) {
-			t.attribute.vid_lex[i] = lexeme[i];
-		}
+	if(strlen(lexeme) >= VID_LEN-1) 
+		{
+			for(i = 0; i < VID_LEN-1; i++)
+			{
+				t.attribute.vid_lex[i] = lexeme[i];
+			}
 		t.attribute.vid_lex[VID_LEN-1] = '%';
 		t.attribute.vid_lex[VID_LEN] = '\0';
-	}
+		}
+		else 
+		{
+			for(i = 0; i < strlen(lexeme); i++)
+			{
+				t.attribute.vid_lex[i] = lexeme[i];
+			}
+			t.attribute.vid_lex[strlen(lexeme)] = '%';
+			t.attribute.vid_lex[strlen(lexeme)+1] = '\0';
+		}
 
 /*WHEN CALLED THE FUNCTION MUST
 1. SET a SVID TOKEN.
@@ -472,14 +503,29 @@ Token aa_func03(char lexeme[]) {
 
 Token aa_func08(char lexeme[]) {
 	Token t;
-
-	if(atof(lexeme) >= FLT_MIN && atof(lexeme) <= FLT_MAX) {
+	int i = 0;
+	if((float)atof(lexeme) >= FLT_MIN && (float)atof(lexeme) <= FLT_MAX || !atof(lexeme)) {
 		t.code = FPL_T;
 		t.attribute.flt_value = (float) atof(lexeme);
 		return t;
 	}
 	t.code = ERR_T;
-	*t.attribute.err_lex = *lexeme;
+	if(strlen(lexeme) >= ERR_LEN-1) 
+		{
+			for(i = 0; i < ERR_LEN; i++)
+			{
+				t.attribute.err_lex[i] = lexeme[i];
+			}
+		t.attribute.err_lex[ERR_LEN] = '\0';
+		}
+		else 
+		{
+			for(i = 0; i < strlen(lexeme); i++)
+			{
+				t.attribute.err_lex[i] = lexeme[i];
+			}
+			t.attribute.err_lex[strlen(lexeme)] = '\0';
+		}
 	return t;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME TO A FLOATING POINT VALUE,
@@ -495,13 +541,29 @@ THE ERROR TOKEN ATTRIBUTE IS  lexeme*/
 
 Token aa_func05(char lexeme[]) {
 	Token t;
+	int i = 0;
 
 	if(atoi(lexeme) >= SHRT_MIN && atoi(lexeme) <= SHRT_MAX) {
 		t.attribute.int_value = atoi(lexeme);
 		return t;
 	}
 	t.code = ERR_T;
-	*t.attribute.err_lex = *lexeme;
+	if(strlen(lexeme) >= ERR_LEN-1) 
+		{
+			for(i = 0; i < ERR_LEN; i++)
+			{
+				t.attribute.err_lex[i] = lexeme[i];
+			}
+		t.attribute.err_lex[ERR_LEN] = '\0';
+		}
+		else 
+		{
+			for(i = 0; i < strlen(lexeme); i++)
+			{
+				t.attribute.err_lex[i] = lexeme[i];
+			}
+			t.attribute.err_lex[strlen(lexeme)] = '\0';
+		}
 	return t;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING A DECIMAL CONSTANT AND 0
@@ -517,6 +579,7 @@ THE ERROR TOKEN ATTRIBUTE IS  lexeme*/
 
 Token aa_func10(char lexeme[]) {
 	Token t;
+	int i = 0;
 
 	if(atool(lexeme) >= SHRT_MIN && atool(lexeme) <= SHRT_MAX) {
 		t.attribute.int_value = atool(lexeme);
@@ -524,7 +587,22 @@ Token aa_func10(char lexeme[]) {
 	}
 
 	t.code = ERR_T;
-	*t.attribute.err_lex = *lexeme;
+	if(strlen(lexeme) >= ERR_LEN-1) 
+		{
+			for(i = 0; i < ERR_LEN; i++)
+			{
+				t.attribute.err_lex[i] = lexeme[i];
+			}
+		t.attribute.err_lex[ERR_LEN] = '\0';
+		}
+		else 
+		{
+			for(i = 0; i < strlen(lexeme); i++)
+			{
+				t.attribute.err_lex[i] = lexeme[i];
+			}
+			t.attribute.err_lex[strlen(lexeme)] = '\0';
+		}
 
 /*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING AN OCTAL CONSTANT
 TO A DECIMAL INTEGER VALUE WHICH IS THE ATTRIBUTE FOR THE TOKEN.
@@ -623,10 +701,20 @@ Token errorString(Buffer* tsc_Buf)
 	errToken.code = ERR_T;
 	while (++counter < ERR_LEN - 3)
 	{
-		if (c == SEOF_T || c == '\0') { errToken.attribute.err_lex[counter] = c; return errToken; }
+		c = b_getc(tsc_Buf);
+		if (c == '\0') { errToken.attribute.err_lex[counter] = c; return errToken; }
 		errToken.attribute.err_lex[counter] = c;
 	}
 	for (counter; counter < VID_LEN; ++counter)
 		errToken.attribute.err_lex[counter] = '.';
 	return errToken;
+}
+
+Token errSymbol(char c)
+{
+	Token t;
+	t.code = ERR_T;
+	t.attribute.err_lex[0] = c;
+	t.attribute.err_lex[1] = '\0';
+	return t;
 }
