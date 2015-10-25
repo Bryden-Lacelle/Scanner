@@ -96,6 +96,8 @@ which is being processed by the scanner.
 	Token errorString(Buffer*);
 	int copyString(Buffer*, Buffer*, int);
 	short getString(Buffer*, short);
+	char errComment[3] = {'!', NULL, '\0'};
+	static short str_LTBL_mark = 0;
 
         
                 
@@ -115,6 +117,7 @@ COMMENTS AND STRING LITERALS ARE ALSO PROCESSED HERE.
 WHAT FOLLOWS IS A PSEUDO CODE. YOU CAN USE switch STATEMENT
 INSTEAD OF if-else TO PROCESS THE SPECIAL CASES
 DO NOT FORGET TO COUNT THE PROGRAM LINES*/
+		if (c == 255) { t.code = SEOF_T; return t; }
 			if(c != SEOF_T)
 			{
 				if(c == ' ')
@@ -182,7 +185,16 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 				{
 					while ((c = b_getc(sc_buf)) != '\n') {}
 				}
-				else { t.code = ERR_T; t.attribute.err_lex[0] = '!'; t.attribute.err_lex[1] = c; return t; }
+				else 
+				{ 
+					t.code = ERR_T; 
+					errComment[1] = c;
+					t.attribute.err_lex[0] = errComment[0]; 
+					t.attribute.err_lex[1] = errComment[1]; 
+					t.attribute.err_lex[2] = errComment[2]; 
+					while ((c = b_getc(sc_buf)) != '\n') {}
+					return t; 
+				}
 				continue;
 			}
 			//printf("get_c_offset:%d", b_getc_offset(sc_buf));
@@ -192,14 +204,16 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 //	ELSE IN A LOOP SKIP CHARACTERS UNTIL \n THEN continue
 			if (c == '"') // TO-DO Add first quote to buffer
 			{
+				b_retract(sc_buf);
 				b_setmark(sc_buf, b_getc_offset(sc_buf));
-				b_setmark(str_LTBL, b_mark(str_LTBL));
+				//b_setmark(str_LTBL, b_mark(str_LTBL));
 				validString = (BOOL) copyString(sc_buf, str_LTBL, increment = getString(sc_buf, 0));
 				if (!validString) { t = errorString(sc_buf); return t; }
 				b_addc(str_LTBL, '\0'); 
 				t.code = STR_T; 
-				t.attribute.str_offset = b_mark(str_LTBL); 
-				b_setmark(str_LTBL, b_mark(str_LTBL) + increment);
+				t.attribute.str_offset = str_LTBL_mark; 
+				str_LTBL_mark += increment + 1;
+				return t;
 			}
 //	...
 //	IF STRING (FOR EXAMPLE, "text") IS FOUND
@@ -586,10 +600,11 @@ int iskeyword(char *kw_lexeme) {
 short getString(Buffer* tsc_Buf, short counter)
 {
 	char c = b_getc(tsc_Buf);
-	if (c == SEOF_T || c == '\0') { b_retract_to_mark(tsc_Buf); return -1; }
+	if (c == '\0') { b_retract_to_mark(tsc_Buf); return -1; }
 	if (c != '"') { return getString(tsc_Buf, ++counter); }
+	else if (counter == 0) {return getString(tsc_Buf, ++counter); }
 	b_retract_to_mark(tsc_Buf);
-	return counter += 2;
+	return ++counter;
 }
 
 int copyString(Buffer* s_Buf, Buffer* t_Buf, int counter)
