@@ -126,7 +126,11 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 				{
 					continue;
 				}
+				if (c == '#') { t.code = SCC_OP_T; return t; }
 				if (c == ';') { t.code = EOS_T; return t;}
+				if (c == ',') { t.code = COM_T; return t;}
+				if (c == '(') { t.code = LPR_T; return t;}
+				if (c == ')') { t.code = RPR_T; return t;}
 				if(c == '{') { t.code = LBR_T; /*no attribute */ return t; }
 				else if(c == '}') { t.code = RBR_T; return t; }
 			
@@ -142,8 +146,7 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 					else if(c == '-') { t.code = ART_OP_T; t.attribute.arr_op = MINUS; return t; }
 					else if(c == '*') { t.code = ART_OP_T; t.attribute.arr_op = MULT; return t; }
 					else if(c == '/') { t.code = ART_OP_T; t.attribute.arr_op = DIV; return t; }
-					else if(c == ' ') { t.code = ASS_OP_T; return t; }
-					else { t.code = ERR_T; return t; }
+					else { t.code = ASS_OP_T; return t; }
 				}
 				else if(c == '>') { t.code = REL_OP_T; t.attribute.rel_op = GT; return t; }
 				else if(c == '<') 
@@ -544,6 +547,7 @@ Token aa_func05(char lexeme[]) {
 	int i = 0;
 
 	if(atoi(lexeme) >= SHRT_MIN && atoi(lexeme) <= SHRT_MAX) {
+		t.code = INL_T;
 		t.attribute.int_value = atoi(lexeme);
 		return t;
 	}
@@ -582,6 +586,7 @@ Token aa_func10(char lexeme[]) {
 	int i = 0;
 
 	if(atool(lexeme) >= SHRT_MIN && atool(lexeme) <= SHRT_MAX) {
+		t.code = INL_T;
 		t.attribute.int_value = atool(lexeme);
 		return t;
 	}
