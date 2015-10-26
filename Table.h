@@ -52,7 +52,7 @@
 		/* State 4 */	{ES, 4, 4, 4, 7, 5, 5}, 
 		/* State 5 */	{IS, IS, IS, IS, IS, IS, IS}, 
 		/* State 6 */	{ES, ES, 9, ES, 7, ES, 5}, 
-		/* State 7 */	{ES, 7, 7, 7, ES, 8, 8}, 
+		/* State 7 */	{ES, 7, 7, 7, 8, 8, 8}, 
 		/* State 8 */	{IS, IS, IS, IS, IS, IS, IS}, 
 		/* State 9 */	{ES, 9, 9, IS, ES, 10, 10}, 
 		/* State 10 */	{IS, IS, IS, IS, IS, IS, IS}, 
