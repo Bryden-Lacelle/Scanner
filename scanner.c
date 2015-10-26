@@ -1,16 +1,29 @@
-/* Filename: scanner.c
-/* PURPOSE:
- *    SCANNER.C: Functions implementing a Lexical Analyzer (Scanner)
- *    as required for CST8152, Assignment #2
- *    scanner_init() must be called before using the scanner.
- *    The file is incomplete;
- *    Provided by: Svillen Ranev
- *    Version: 1.15.02
- *    Date: 29 September 2015
- *******************************************************************
- *    REPLACE THIS HEADER WITH YOUR HEADER
- *******************************************************************
- */
+/*******************************************************************************
+ * File Name:		scanner.c
+ * Compiler:		MS Visual Studio 2012
+ * Authors:			Bryden Lacelle & Justin Farinaccio
+ * Course:			CST8152 - Compilers, Lab Section 011
+ * Assignment:		Assignment 2: The Scanner
+ * Date:			October 27, 2015
+ * Professor:		Svillen Ranev
+ * Purpose:			
+ * Funciton List:	scanner_init();
+					mlwpar_next_token();
+					get_next_state();
+					char_class();
+					aa_func02();
+					aa_func03();
+					aa_func08();
+					aa_func05();
+					aa_func10();
+					aa_func12();
+					atool();
+					iskeyword();
+					getString();
+					copyString();
+					errorString();
+					errSymbol();
+*******************************************************************************/
 
 /* The #define _CRT_SECURE_NO_WARNINGS should be used in MS Visual Studio projects
  * to suppress the warnings about using "unsafe" functions like fopen()
@@ -55,6 +68,15 @@ static int get_next_state(int, char, int *);	/* state machine function */
 static int iskeyword(char * kw_lexeme);			/*keywords lookup functuion */
 static long atool(char * lexeme);				/* converts octal string to decimal value */
 
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			Buffer*
+Return Value:		int (EXIT_SUCCESS)
+Algorithm:			
+*******************************************************************************/
 int scanner_init(Buffer *sc_buf) {
 	if(b_isempty(sc_buf)) return EXIT_FAILURE;/*1*/
 	/* in case the buffer has been read previously  */
@@ -66,6 +88,15 @@ int scanner_init(Buffer *sc_buf) {
 /*	scerrnum = 0;  *//*no need - global ANSI C */
 }
 
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 Token mlwpar_next_token(Buffer * sc_buf)
 {
 	Token t;			/* token to return after recognition */
@@ -83,9 +114,8 @@ lexend is the offset from the beginning of the char buffer of the
 input buffer (sc_buf) to the last character of the current lexeme,
 which is being processed by the scanner.
 */ 
-        
-        
-      /*  DECLARE YOUR VARIABLES HERE IF NEEDED */
+	
+	/*  DECLARE YOUR VARIABLES HERE IF NEEDED */
 	char vAND[] = {'A', 'N', 'D', '.'};
 	char vOR[] = {'O', 'R', '.'};
 	int i = -1;
@@ -100,15 +130,11 @@ which is being processed by the scanner.
 	char errComment[3] = {'!', NULL, '\0'};
 	static short str_LTBL_mark = 0;
 
-        
-                
-		while(1)
+	while(1)
 		{ /* endless loop broken by token returns it will generate a warning */
                 
         /*GET THE NEXT SYMBOL FROM THE INPUT BUFFER */
         c = b_getc(sc_buf);
-
-
 
 /* special cases or token driven processing */
 
@@ -120,112 +146,112 @@ INSTEAD OF if-else TO PROCESS THE SPECIAL CASES
 DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 		if (c == 255) { t.code = SEOF_T; return t; }
 		
-			if(c != SEOF_T)
+		if(c != SEOF_T)
+		{
+			if(c == ' ' || c == '\n' || c == 'LF' || c == 'CR' || c == 'CRLF' || c == '\t' || !c)
 			{
-				if(c == ' ' || c == '\n' || c == 'LF' || c == 'CR' || c == 'CRLF' || c == '\t')
-				{
-					continue;
-				}
-				if (c == '#') { t.code = SCC_OP_T; return t; }
-				if (c == ';') { t.code = EOS_T; return t;}
-				if (c == ',') { t.code = COM_T; return t;}
-				if (c == '(') { t.code = LPR_T; return t;}
-				if (c == ')') { t.code = RPR_T; return t;}
-				if(c == '{') { t.code = LBR_T; /*no attribute */ return t; }
-				else if(c == '}') { t.code = RBR_T; return t; }
+				continue;
+			}
+			if (c == '#') { t.code = SCC_OP_T; return t; }
+			if (c == ';') { t.code = EOS_T; return t;}
+			if (c == ',') { t.code = COM_T; return t;}
+			if (c == '(') { t.code = LPR_T; return t;}
+			if (c == ')') { t.code = RPR_T; return t;}
+			if(c == '{') { t.code = LBR_T; /*no attribute */ return t; }
+			else if(c == '}') { t.code = RBR_T; return t; }
 			
-				if(c == '+') { t.code = ART_OP_T; t.attribute.arr_op = PLUS; return t; }
+			if(c == '+') { t.code = ART_OP_T; t.attribute.arr_op = PLUS; return t; }
+			else if(c == '-') { t.code = ART_OP_T; t.attribute.arr_op = MINUS; return t; }
+			else if(c == '*') { t.code = ART_OP_T; t.attribute.arr_op = MULT; return t; }
+			else if(c == '/') { t.code = ART_OP_T; t.attribute.arr_op = DIV; return t; }
+			if(c == '=') 
+			{
+				c = b_getc(sc_buf);
+				if(c == '=') { t.code = REL_OP_T; t.attribute.rel_op = EQ; return t; }
+				else if(c == '+') { t.code = ART_OP_T; t.attribute.arr_op = PLUS; return t; }
 				else if(c == '-') { t.code = ART_OP_T; t.attribute.arr_op = MINUS; return t; }
 				else if(c == '*') { t.code = ART_OP_T; t.attribute.arr_op = MULT; return t; }
 				else if(c == '/') { t.code = ART_OP_T; t.attribute.arr_op = DIV; return t; }
-				if(c == '=') 
-				{
-					c = b_getc(sc_buf);
-					if(c == '=') { t.code = REL_OP_T; t.attribute.rel_op = EQ; return t; }
-					else if(c == '+') { t.code = ART_OP_T; t.attribute.arr_op = PLUS; return t; }
-					else if(c == '-') { t.code = ART_OP_T; t.attribute.arr_op = MINUS; return t; }
-					else if(c == '*') { t.code = ART_OP_T; t.attribute.arr_op = MULT; return t; }
-					else if(c == '/') { t.code = ART_OP_T; t.attribute.arr_op = DIV; return t; }
-					else { t.code = ASS_OP_T; return t; }
-				}
-				else if(c == '>') { t.code = REL_OP_T; t.attribute.rel_op = GT; return t; }
-				else if(c == '<') 
-				{
-					c = b_getc(sc_buf);
-					if(c == '>') { t.code = REL_OP_T; t.attribute.rel_op = NE; return t; }
-					else { t.code = REL_OP_T; t.attribute.rel_op = LT; return t; }
-				}
-				if (c == '.')
-				{
-					while(1)
-					{
-						++i;
-						c = b_getc(sc_buf);
-						switch(switch_AND_OR)
-						{
-						case 0:
-							if (c == vAND[i])
-								switch_AND_OR = 1;
-							else if (c == vOR[i])
-								switch_AND_OR = 2;
-							else 
-								{t = errSymbol('.'); return t;}
-							break;
-						case 1:
-							if (c == vAND[i])
-								break;
-							else 
-								{t = errSymbol('.'); return t;}	
-						case 2:
-							if (c == vOR[i])
-								break;
-							else 
-								{t = errSymbol('.'); return t;}
-						}
-						if (i == 2 && switch_AND_OR == 2)
-							{ t.code = LOG_OP_T; t.attribute.log_op = OR; return t; }
-						if(i == 3 && switch_AND_OR == 1)
-							{ t.code = LOG_OP_T; t.attribute.log_op = AND; return t; }
-					}
-				}
+				else { b_retract(sc_buf); t.code = ASS_OP_T; return t; }
 			}
-
-			if (c == '!')
+			else if(c == '>') { t.code = REL_OP_T; t.attribute.rel_op = GT; return t; }
+			else if(c == '<') 
 			{
-				if ((c = b_getc(sc_buf)) == '<')
-				{
-					while ((c = b_getc(sc_buf)) != '\n') {}
-				}
-				else 
-				{ 
-					t.code = ERR_T; 
-					errComment[1] = c;
-					t.attribute.err_lex[0] = errComment[0]; 
-					t.attribute.err_lex[1] = errComment[1]; 
-					t.attribute.err_lex[2] = errComment[2]; 
-					while ((c = b_getc(sc_buf)) != '\n') {}
-					return t; 
-				}
-				continue;
+				c = b_getc(sc_buf);
+				if(c == '>') { t.code = REL_OP_T; t.attribute.rel_op = NE; return t; }
+				else { t.code = REL_OP_T; t.attribute.rel_op = LT; return t; }
 			}
-			//printf("get_c_offset:%d", b_getc_offset(sc_buf));
-			//printf("char:%c\n", c);
+			if (c == '.')
+			{
+				while(1)
+				{
+					++i;
+					c = b_getc(sc_buf);
+					switch(switch_AND_OR)
+					{
+					case 0:
+						if (c == vAND[i])
+							switch_AND_OR = 1;
+						else if (c == vOR[i])
+							switch_AND_OR = 2;
+						else 
+							{t = errSymbol('.'); return t;}
+						break;
+					case 1:
+						if (c == vAND[i])
+							break;
+						else 
+							{t = errSymbol('.'); return t;}	
+					case 2:
+						if (c == vOR[i])
+							break;
+						else 
+							{t = errSymbol('.'); return t;}
+					}
+					if (i == 2 && switch_AND_OR == 2)
+						{ t.code = LOG_OP_T; t.attribute.log_op = OR; return t; }
+					if(i == 3 && switch_AND_OR == 1)
+						{ t.code = LOG_OP_T; t.attribute.log_op = AND; return t; }
+				}
+			}
+		}
+
+		if (c == '!')
+		{
+			if ((c = b_getc(sc_buf)) == '<')
+			{
+				while ((c = b_getc(sc_buf)) != '\n') {}
+			}
+			else 
+			{ 
+				t.code = ERR_T; 
+				errComment[1] = c;
+				t.attribute.err_lex[0] = errComment[0]; 
+				t.attribute.err_lex[1] = errComment[1]; 
+				t.attribute.err_lex[2] = errComment[2]; 
+				while ((c = b_getc(sc_buf)) != '\n') {}
+				return t; 
+			}
+			continue;
+		}
+		//printf("get_c_offset:%d", b_getc_offset(sc_buf));
+		//printf("char:%c\n", c);
 //	IF (c == '!') TRY TO PROCESS COMMENT
 //	IF THE FOLLOWING IS NOT CHAR IS NOT < REPORT AN ERROR
 //	ELSE IN A LOOP SKIP CHARACTERS UNTIL \n THEN continue
-			if (c == '"') // TO-DO Add first quote to buffer
-			{
-				b_retract(sc_buf);
-				b_setmark(sc_buf, b_getc_offset(sc_buf));
-				//b_setmark(str_LTBL, b_mark(str_LTBL));
-				validString = (BOOL) copyString(sc_buf, str_LTBL, increment = getString(sc_buf, 0));
-				if (!validString) { t = errorString(sc_buf); return t; }
-				b_addc(str_LTBL, '\0'); 
-				t.code = STR_T; 
-				t.attribute.str_offset = str_LTBL_mark; 
-				str_LTBL_mark += increment + 1;
-				return t;
-			}
+		if (c == '"') // TO-DO Add first quote to buffer
+		{
+			//b_retract(sc_buf);
+			b_setmark(sc_buf, b_getc_offset(sc_buf));
+			//b_setmark(str_LTBL, b_mark(str_LTBL));
+			validString = (BOOL) copyString(sc_buf, str_LTBL, increment = getString(sc_buf, 0));
+			if (!validString) { t = errorString(sc_buf); return t; }
+			b_addc(str_LTBL, '\0'); 
+			t.code = STR_T; 
+			t.attribute.str_offset = str_LTBL_mark; 
+			str_LTBL_mark += increment + 1;
+			return t;
+		}
 //	...
 //	IF STRING (FOR EXAMPLE, "text") IS FOUND
 //		SET MARK TO MARK THE BEGINNING OF THE STRING
@@ -267,7 +293,10 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 		}
 		break;
 	} // end while(1)
-	//aa_table[state];
+	
+	/*PTR_AAF x;
+	x = (*aa_table[state]);*/
+	
 /*	CODE YOUR FINITE STATE MACHINE HERE (FSM or DFA)
 	IT IMPLEMENTS THE FOLLOWING ALGORITHM:
 	
@@ -295,32 +324,32 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 	if (t.code == SVID_T)
 		b_getc(sc_buf);
 	return t;
-  /*  
-  RETRACT  getc_offset IF THE FINAL STATE IS A RETRACTING FINAL STATE
-  GET THE BEGINNING AND THE END OF THE LEXEME
-  lexstart = b_getmark(sc_buf);
-  SET lexend TO getc_offset USING AN APPROPRIATE BUFFER FUNCTION
-  CREATE  A TEMPORRARY LEXEME BUFFER HERE;
-  lex_buf = b_create(...);
-   . RETRACT getc_offset to the MARK SET PREVIOUSLY AT THE BEGINNING OF THE LEXEME AND
-   . USING b_getc() COPY THE LEXEME BETWEEN lexstart AND lexend FROM THE INPUT BUFFER INTO lex_buf USING b_addc(...),
-   . WHEN VID (KEYWORDS INCLUDED), FPL OR IL IS RECOGNIZED
-   . YOU MUST CALL THE ACCEPTING FUNCTION USING THE ARRAY aa_table ,WHICH
-   . CONTAINS POINTERS TO FUNCTIONS. THE ARRAY INDEX OF THE FUNCTION TO BE
-   . CALLED IS STORED IN THE VARIABLE state.
-   . YOU ARE NOT ALLOWED TO CALL ANY OF THE ACCEPTING FUNCTIONS BY NAME.
-   . THE ARGUMENT TO THE FUNCTION IS THE STRING STORED IN lex_buf.
-   ....
-    b_destroy(lex_buf);
-   return t;
-      
-     CHECK OTHER CHARS HERE if NEEDED, SET A TOKEN AND RETURN IT.
-     FOR ILLEGAL CHARACTERS SET ERROR TOKEN. 
-     THE ILLEGAL CHAR IS THE ATTRIBUTE OF THE ERROR TOKEN 
-     IN A CASE OF RUNTIME ERROR, THE FUNCTION MUST STORE 
-     A NON-NEGATIVE NUMBER INTO THE GLOBAL VARIABLE scerrnum
-     AND RETURN AN ERROR TOKEN. THE ERROR TOKEN ATTRIBUTE MUST
-     BE THE STRING "RUN TIME ERROR: "
+/*
+	RETRACT  getc_offset IF THE FINAL STATE IS A RETRACTING FINAL STATE
+	GET THE BEGINNING AND THE END OF THE LEXEME
+	lexstart = b_getmark(sc_buf);
+	SET lexend TO getc_offset USING AN APPROPRIATE BUFFER FUNCTION
+	CREATE  A TEMPORRARY LEXEME BUFFER HERE;
+	lex_buf = b_create(...);
+	. RETRACT getc_offset to the MARK SET PREVIOUSLY AT THE BEGINNING OF THE LEXEME AND
+	. USING b_getc() COPY THE LEXEME BETWEEN lexstart AND lexend FROM THE INPUT BUFFER INTO lex_buf USING b_addc(...),
+	. WHEN VID (KEYWORDS INCLUDED), FPL OR IL IS RECOGNIZED
+	. YOU MUST CALL THE ACCEPTING FUNCTION USING THE ARRAY aa_table ,WHICH
+	. CONTAINS POINTERS TO FUNCTIONS. THE ARRAY INDEX OF THE FUNCTION TO BE
+	. CALLED IS STORED IN THE VARIABLE state.
+	. YOU ARE NOT ALLOWED TO CALL ANY OF THE ACCEPTING FUNCTIONS BY NAME.
+	. THE ARGUMENT TO THE FUNCTION IS THE STRING STORED IN lex_buf.
+	....
+	    b_destroy(lex_buf);
+		return t;
+
+		CHECK OTHER CHARS HERE if NEEDED, SET A TOKEN AND RETURN IT.
+		FOR ILLEGAL CHARACTERS SET ERROR TOKEN. 
+		THE ILLEGAL CHAR IS THE ATTRIBUTE OF THE ERROR TOKEN 
+		IN A CASE OF RUNTIME ERROR, THE FUNCTION MUST STORE 
+		A NON-NEGATIVE NUMBER INTO THE GLOBAL VARIABLE scerrnum
+		AND RETURN AN ERROR TOKEN. THE ERROR TOKEN ATTRIBUTE MUST
+		BE THE STRING "RUN TIME ERROR: "
 */
 	}//end while(1)
 }
@@ -328,7 +357,15 @@ DO NOT FORGET TO COUNT THE PROGRAM LINES*/
 
 /*DO NOT MODIFY THE CODE OF THIS FUNCTION
 YOU CAN REMOVE THE COMMENTS*/ 
-
+/*******************************************************************************
+Purpose:			
+Author:				Svillen Ranev
+History/Versions:	
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 int get_next_state(int state, char c, int *accept)
 {
 	int col;
@@ -373,30 +410,26 @@ or #undef DEBUF is used - see the top of the file.
 	return next;
 }
 
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 int char_class(char c)
 {
 	int val;
 
-	if(isalpha(c)) {
-		val = 0;
-	}
-	else if(c == '0') {
-		val = 1;
-	}
-	else if(c >= '1' && c <= '7') {
-		val = 2;
-	}
-	else if(c == '8' || c == '9') {
-		val = 3;
-	}
-	else if(c == '.') {
-		val = 4;
-	}
-	else if(c == '%') {
-		val = 5;
-	}
-	else
-		val = 6;
+	if(isalpha(c))					{ val = 0; }
+	else if(c == '0')				{ val = 1; }
+	else if(c >= '1' && c <= '7')	{ val = 2; }
+	else if(c == '8' || c == '9')	{ val = 3; }
+	else if(c == '.')				{ val = 4; }
+	else if(c == '%')				{ val = 5; }
+	else							{ val = 6; }
 
 /*THIS FUNCTION RETURNS THE COLUMN NUMBER IN THE TRANSITION
 TABLE st_table FOR THE INPUT CHARACTER c.
@@ -415,13 +448,22 @@ OF THE LETTERS A,B,...,Z.*/
 
 /*ACCEPTING FUNCTION FOR THE arithmentic variable identifier AND keywords (VID - AVID/KW)
 REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER*/
-
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 Token aa_func02(char lexeme[]) {
 	int i = 0;
 	int kw_Index;
 	Token t;
 	//printf("lexeme: %s", lexeme);
-	if((kw_Index = iskeyword(lexeme)) != -1) {
+	if((kw_Index = iskeyword(lexeme)) != -1)
+	{
 		t.code = KW_T;
 		t.attribute.kwt_idx = kw_Index;
 		return t;
@@ -464,31 +506,39 @@ Token aa_func02(char lexeme[]) {
 
 /*ACCEPTING FUNCTION FOR THE string variable identifier (VID - SVID)
 REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER*/
-
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 Token aa_func03(char lexeme[]) {
 	Token t;
 	int i = 0;
 
 	// set SVID token
 	t.code = SVID_T;
-	if(strlen(lexeme) >= VID_LEN-1) 
+	if(strlen(lexeme) >= VID_LEN-1)
+	{
+		for(i = 0; i < VID_LEN-1; i++)
 		{
-			for(i = 0; i < VID_LEN-1; i++)
-			{
-				t.attribute.vid_lex[i] = lexeme[i];
-			}
-		t.attribute.vid_lex[VID_LEN-1] = '%';
-		t.attribute.vid_lex[VID_LEN] = '\0';
+			t.attribute.vid_lex[i] = lexeme[i];
 		}
-		else 
+	t.attribute.vid_lex[VID_LEN-1] = '%';
+	t.attribute.vid_lex[VID_LEN] = '\0';
+	}
+	else 
+	{
+		for(i = 0; i < strlen(lexeme); i++)
 		{
-			for(i = 0; i < strlen(lexeme); i++)
-			{
-				t.attribute.vid_lex[i] = lexeme[i];
-			}
-			t.attribute.vid_lex[strlen(lexeme)] = '%';
-			t.attribute.vid_lex[strlen(lexeme)+1] = '\0';
+			t.attribute.vid_lex[i] = lexeme[i];
 		}
+		t.attribute.vid_lex[strlen(lexeme)] = '%';
+		t.attribute.vid_lex[strlen(lexeme)+1] = '\0';
+	}
 
 /*WHEN CALLED THE FUNCTION MUST
 1. SET a SVID TOKEN.
@@ -503,7 +553,15 @@ Token aa_func03(char lexeme[]) {
 
 
 /*ACCEPTING FUNCTION FOR THE floating-point literal (FPL)*/
-
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 Token aa_func08(char lexeme[]) {
 	Token t;
 	int i = 0;
@@ -513,22 +571,22 @@ Token aa_func08(char lexeme[]) {
 		return t;
 	}
 	t.code = ERR_T;
-	if(strlen(lexeme) >= ERR_LEN-1) 
+	if(strlen(lexeme) >= ERR_LEN-1)
+	{
+		for(i = 0; i < ERR_LEN; i++)
 		{
-			for(i = 0; i < ERR_LEN; i++)
-			{
-				t.attribute.err_lex[i] = lexeme[i];
-			}
-		t.attribute.err_lex[ERR_LEN] = '\0';
+			t.attribute.err_lex[i] = lexeme[i];
 		}
-		else 
+	t.attribute.err_lex[ERR_LEN] = '\0';
+	}
+	else 
+	{
+		for(i = 0; i < strlen(lexeme); i++)
 		{
-			for(i = 0; i < strlen(lexeme); i++)
-			{
-				t.attribute.err_lex[i] = lexeme[i];
-			}
-			t.attribute.err_lex[strlen(lexeme)] = '\0';
+			t.attribute.err_lex[i] = lexeme[i];
 		}
+		t.attribute.err_lex[strlen(lexeme)] = '\0';
+	}
 	return t;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME TO A FLOATING POINT VALUE,
@@ -541,33 +599,42 @@ THE ERROR TOKEN ATTRIBUTE IS  lexeme*/
 
 
 /*ACCEPTING FUNCTION FOR THE integer literal(IL) - decimal constant (DIL) AND ZERO (0)*/
-
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 Token aa_func05(char lexeme[]) {
 	Token t;
 	int i = 0;
 
-	if(atoi(lexeme) >= SHRT_MIN && atoi(lexeme) <= SHRT_MAX) {
+	if(atoi(lexeme) >= SHRT_MIN && atoi(lexeme) <= SHRT_MAX)
+	{
 		t.code = INL_T;
 		t.attribute.int_value = atoi(lexeme);
 		return t;
 	}
 	t.code = ERR_T;
-	if(strlen(lexeme) >= ERR_LEN-1) 
+	if(strlen(lexeme) >= ERR_LEN-1)
+	{
+		for(i = 0; i < ERR_LEN; i++)
 		{
-			for(i = 0; i < ERR_LEN; i++)
-			{
-				t.attribute.err_lex[i] = lexeme[i];
-			}
-		t.attribute.err_lex[ERR_LEN] = '\0';
+			t.attribute.err_lex[i] = lexeme[i];
 		}
-		else 
+	t.attribute.err_lex[ERR_LEN] = '\0';
+	}
+	else 
+	{
+		for(i = 0; i < strlen(lexeme); i++)
 		{
-			for(i = 0; i < strlen(lexeme); i++)
-			{
-				t.attribute.err_lex[i] = lexeme[i];
-			}
-			t.attribute.err_lex[strlen(lexeme)] = '\0';
+			t.attribute.err_lex[i] = lexeme[i];
 		}
+		t.attribute.err_lex[strlen(lexeme)] = '\0';
+	}
 	return t;
 
 /*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING A DECIMAL CONSTANT AND 0
@@ -580,7 +647,15 @@ THE ERROR TOKEN ATTRIBUTE IS  lexeme*/
 
 
 /*ACCEPTING FUNCTION FOR THE integer literal(IL) - octal constant (OIL)*/
-
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 Token aa_func10(char lexeme[]) {
 	Token t;
 	int i = 0;
@@ -592,22 +667,22 @@ Token aa_func10(char lexeme[]) {
 	}
 
 	t.code = ERR_T;
-	if(strlen(lexeme) >= ERR_LEN-1) 
+	if(strlen(lexeme) >= ERR_LEN-1)
+	{
+		for(i = 0; i < ERR_LEN; i++)
 		{
-			for(i = 0; i < ERR_LEN; i++)
-			{
-				t.attribute.err_lex[i] = lexeme[i];
-			}
-		t.attribute.err_lex[ERR_LEN] = '\0';
+			t.attribute.err_lex[i] = lexeme[i];
 		}
-		else 
+	t.attribute.err_lex[ERR_LEN] = '\0';
+	}
+	else 
+	{
+		for(i = 0; i < strlen(lexeme); i++)
 		{
-			for(i = 0; i < strlen(lexeme); i++)
-			{
-				t.attribute.err_lex[i] = lexeme[i];
-			}
-			t.attribute.err_lex[strlen(lexeme)] = '\0';
+			t.attribute.err_lex[i] = lexeme[i];
 		}
+		t.attribute.err_lex[strlen(lexeme)] = '\0';
+	}
 
 /*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING AN OCTAL CONSTANT
 TO A DECIMAL INTEGER VALUE WHICH IS THE ATTRIBUTE FOR THE TOKEN.
@@ -626,11 +701,21 @@ THE ERROR TOKEN ATTRIBUTE IS  lexeme*/
 
 /*ACCEPTING FUNCTION FOR THE ERROR TOKEN*/
 /* could be either 12 OR 13; will be clear once we check against his test files */
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 Token aa_func12(char lexeme[]) {
 	Token t;
 	int i = 0;
 
-	if(strlen(lexeme) > ERR_LEN) {
+	if(strlen(lexeme) > ERR_LEN)
+	{
 		for(i = 0; i < ERR_LEN; i++) {
 			t.attribute.err_lex[i] = lexeme[i];
 		}
@@ -648,7 +733,15 @@ stored in err_lex.*/
 
 
 /*CONVERSION FUNCTION*/
-
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 long atool(char *lexeme) {
 
 /*THE FUNCTION CONVERTS AN ASCII STRING
@@ -658,13 +751,20 @@ REPRESENTING AN OCTAL INTEGER CONSTANT TO INTEGER VALUE*/
 	long int x;
 
 	x = strtol(lexeme, &ptr, 8);
-
 	return x;
 }
 
 /*HERE YOU WRITE YOUR ADDITIONAL FUNCTIONS (IF ANY).
 FOR EXAMPLE*/
-
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 int iskeyword(char *kw_lexeme) {
 
 	int i = 0;
@@ -680,16 +780,34 @@ int iskeyword(char *kw_lexeme) {
 	return -1;
 }
 
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 short getString(Buffer* tsc_Buf, short counter)
 {
 	char c = b_getc(tsc_Buf);
 	if (c == '\0') { b_retract_to_mark(tsc_Buf); return -1; }
 	if (c != '"') { return getString(tsc_Buf, ++counter); }
-	else if (counter == 0) {return getString(tsc_Buf, ++counter); }
+	else if (counter == 0) {return counter; }
 	b_retract_to_mark(tsc_Buf);
-	return ++counter;
+	return counter;
 }
 
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 int copyString(Buffer* s_Buf, Buffer* t_Buf, int counter)
 {
 	if (counter < 0)
@@ -698,6 +816,15 @@ int copyString(Buffer* s_Buf, Buffer* t_Buf, int counter)
 	return 1;
 }
 
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 Token errorString(Buffer* tsc_Buf)
 {
 	Token errToken;
@@ -715,6 +842,15 @@ Token errorString(Buffer* tsc_Buf)
 	return errToken;
 }
 
+/*******************************************************************************
+Purpose:			
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/10/xx
+Called Functions:	
+Parameters:			
+Return Value:		
+Algorithm:			
+*******************************************************************************/
 Token errSymbol(char c)
 {
 	Token t;
