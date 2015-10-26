@@ -435,8 +435,9 @@ int b_print (Buffer* const pBD)
 		printf("The buffer is empty.\n");
 		return R_FAIL_1;
 	}
-	while(next_char = b_getc(pBD)) /* TRIGGERS WARNING: Intended declaration in conditional expression*/
+	while(1) /* TRIGGERS WARNING: Intended infinite loop*/
 	{
+		next_char = b_getc(pBD);
 		if (b_eob(pBD)) /* Break from loop when eob is reached*/
 			break;
 		printf("%c", next_char);
