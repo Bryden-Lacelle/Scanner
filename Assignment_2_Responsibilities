@@ -1,0 +1,22 @@
+Name: Bryden Lacelle
+Student Number: 040754048
+
+Written Functions: err_VID_LEN_atrbt(), errSymbol(), runError(), errorString(), copyString(), getString(), aa_func12()
+For this assignment I implemented the above functions for handling strings, error tokens, and run time errors. In addition 
+I implemented the cases for handling '=' and '.' characters as well as the handling of comments and strings. Code that 
+manipulates lex_buf in mlwpar_next_token() was written by me. I was responsible for debugging all functions and code 
+outlined above.
+
+
+
+Name: Justin Farinaccio
+Student Number: 040775821
+
+I created the modified version of the transition table and transition diagram, and wrote and tested the code for the following functions:
+(part of) mlwpar_next_token(); char_class(); aa_func02(); aa_func03(); aa_func08(); aa_func05(); aa_func10(); atool(); iskeyword().
+
+In mlwpar_next_token(), I processed many of the singel-lexeme tokens.  I implemented the accepting functions for arithmetic variable identifiers and keywords, string variable identifiers, floating point literals, decimal integer literals and 0, and octals.  In addition, I implemented the conversion of strings representing an octal integer constant to an integer, as well as determining whether a lexeme is a valid keyword.
+
+I debugged the cases where there were failures of processing the various single-lexeme tokens, as well as each of the accepting functions, changing the parameters of each - in addition to the transition table - as errors arose.
+
+I implemented the code for the finite state machine, and also completed the table.h header file.
