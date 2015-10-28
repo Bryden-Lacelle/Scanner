@@ -121,22 +121,22 @@ Token mlwpar_next_token(Buffer * sc_buf)
 
 
 	/*  DECLARE YOUR VARIABLES HERE IF NEEDED */
-#define SEOF 255
-#define RUNERROR 254
-	char vAND[] = {'A', 'N', 'D', '.'};
-	char vOR[] = {'O', 'R', '.'};
-	int i = -1;
-	int switch_AND_OR = 0;
-	short increment = 0;
-	typedef enum {FALSE, TRUE} BOOL;
-	BOOL validString = FALSE;
-	Token errorString(Buffer*);
-	int copyString(Buffer*, Buffer*, int);
-	short getString(Buffer*, short);
-	Token errSymbol(char);
-	Token runError();
-	char errComment[3] = {'!', ' ', '\0'};
-	static short str_LTBL_mark = 0;
+#define SEOF 255 /* Value of EOF returned by b_getc() */
+#define RUNERROR 254 /* Value of a runtime error returned by b_getc() */
+	char vAND[] = {'A', 'N', 'D', '.'}; /* Char array for comparing input to match .AND. Token */
+	char vOR[] = {'O', 'R', '.'}; /* Char array for comparing input to match .OR. Token */
+	char errComment[3] = {'!', ' ', '\0'}; /* Stores error attribute for invalid comment */
+	static short str_LTBL_mark = 0; /* Stores persistant value of the current offset for a new string to be stored in str_LTBL */
+	short increment = 0; /* Increase in str_LTBL increment from a new string */
+	int i = -1; /* Counting variable */
+	int switch_AND_OR = 0; /* Variable for handling switch statement for determining .AND. and .OR. Tokens */
+	typedef enum {FALSE, TRUE} BOOL; /* True/False enumeration */
+	BOOL validString = FALSE; /* Stores true if a valid string is found */
+	int copyString(Buffer*, Buffer*, int); /* Forward function declaration */
+	short getString(Buffer*, short); /* Forward function declaration */
+	Token errSymbol(char); /* Forward function declaration */
+	Token runError(); /* Forward function declaration */
+	Token errorString(Buffer*); /* Forward function declaration */
 
 	while(1)
 	{ /* endless loop broken by token returns it will generate a warning */
@@ -482,8 +482,8 @@ Algorithm:			Calls err_VID_LEN_atrbt() which returns Token attribute
 					and sets Token code to ERR_T
 *******************************************************************************/
 Token aa_func12(char lexeme[]) {
-	Token err_VID_LEN_atrbt (unsigned short, char*);
-	Token t;
+	Token err_VID_LEN_atrbt (unsigned short, char*); /*Forward Declaration*/
+	Token t; /* Initialize a new Token */
 	t = err_VID_LEN_atrbt(ERR_LEN, lexeme);
 	t.code = ERR_T;
 	return t;
@@ -542,7 +542,7 @@ Algorithm:			Calls the function recursivally incrementing counteruntil a
 *******************************************************************************/
 short getString(Buffer* tsc_Buf, short counter)
 {
-	char c = b_getc(tsc_Buf);
+	char c = b_getc(tsc_Buf); /* Current char from buffer */
 	if (c == '\n' || c == 'CR') /* Increment line count on new line*/
 		++line;
 	if (c == '\0') { b_retract_to_mark(tsc_Buf); return -1; }
@@ -587,9 +587,9 @@ Algorithm:			Calls b_getc() and stores the value in the Token attribute
 *******************************************************************************/
 Token errorString(Buffer* tsc_Buf)
 {
-	Token errToken;
-	char counter = -1;
-	char c;
+	Token errToken; /* Initialize a new Token */
+	char counter = -1; /* counting variable */
+	char c; /* Current char from buffer */
 	errToken.code = ERR_T;
 	b_retract(tsc_Buf); /* Retracts to the first quotation mark in the string */
 	while (++counter < ERR_LEN - 3)
@@ -616,8 +616,8 @@ Algorithm:			Sets Token code to an error and sets the Token to the declared
 *******************************************************************************/
 Token runError()
 {
-	char* runErrors = "RUN TIME ERROR: ";
-	Token errToken;
+	char* runErrors = "RUN TIME ERROR: "; /* Run time error string */
+	Token errToken; /* Initialize a new Token */
 	errToken.code = ERR_T;
 	strcpy(errToken.attribute.err_lex, runErrors);
 	return errToken;
@@ -635,7 +635,7 @@ Algorithm:			Sets Token code to an Error and sets the attribute to the
 *******************************************************************************/
 Token errSymbol(char c)
 {
-	Token t;
+	Token t; /* Initialize a new Token */
 	t.code = ERR_T;
 	t.attribute.err_lex[0] = c;
 	t.attribute.err_lex[1] = '\0';
@@ -659,8 +659,8 @@ Algorithm:			Accepts a length which is either equal to the maximum length
 *******************************************************************************/
 Token err_VID_LEN_atrbt (unsigned short length, char* lexeme)
 {
-	short i = -1;
-	Token t;
+	short i = -1; /* incrementing variable */
+	Token t; /* Initialize a new Token */
 	/* Set attribute to err_lex */
 	if (length == ERR_LEN)
 	{
