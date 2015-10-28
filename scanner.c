@@ -664,9 +664,9 @@ Token err_VID_LEN_atrbt (unsigned short length, char* lexeme)
 	/* Set attribute to err_lex */
 	if (length == ERR_LEN)
 	{
-		if(strlen(lexeme) >= length) /* TRIGGERS WARNING Intentional comparison between signed and unsigned values*/
+		if(strlen(lexeme) >= length)
 		{
-			for(i; i < length; ++i)
+			while (++i < length)
 			{
 				t.attribute.err_lex[i] = lexeme[i];
 			}
@@ -674,7 +674,7 @@ Token err_VID_LEN_atrbt (unsigned short length, char* lexeme)
 		}
 		else 
 		{
-			for(i ; i < strlen(lexeme); ++i) /* TRIGGERS WARNING Intentional comparison between signed and unsigned values*/
+			while (++i < length)
 			{
 				t.attribute.err_lex[i] = lexeme[i];
 			}
@@ -683,9 +683,9 @@ Token err_VID_LEN_atrbt (unsigned short length, char* lexeme)
 		return t;
 	}
 	/* Set attribute to vid_lex */
-	if(strlen(lexeme) >= length) /* TRIGGERS WARNING Intentional comparison between signed and unsigned values*/
+	if(strlen(lexeme) >= length)
 		{
-			for(i; i < length; ++i)
+			while (++i < length)
 			{
 				t.attribute.vid_lex[i] = lexeme[i];
 			}
@@ -693,7 +693,7 @@ Token err_VID_LEN_atrbt (unsigned short length, char* lexeme)
 		}
 		else 
 		{
-			for(i ; i < strlen(lexeme); ++i) /* TRIGGERS WARNING Intentional comparison between signed and unsigned values*/
+			while (++i < length)
 			{
 				t.attribute.vid_lex[i] = lexeme[i];
 			}
