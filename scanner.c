@@ -121,6 +121,8 @@ Token mlwpar_next_token(Buffer * sc_buf)
 
 
 	/*  DECLARE YOUR VARIABLES HERE IF NEEDED */
+#define SEOF 255
+#define RUNERROR 254
 	char vAND[] = {'A', 'N', 'D', '.'};
 	char vOR[] = {'O', 'R', '.'};
 	int i = -1;
@@ -140,13 +142,13 @@ Token mlwpar_next_token(Buffer * sc_buf)
 	{ /* endless loop broken by token returns it will generate a warning */
 		c = b_getc(sc_buf);
 		/* checks for end of source file */
-		if (c == 255) { t.code = SEOF_T; return t; }
-		if(c != 255)
+		if (c == SEOF) { t.code = SEOF_T; return t; }
+		if(c != SEOF)
 		{
 			/* checks for special characters */
-			if(c == ' ' || c == '\n' || c == 'LF' || c == 'CR' || c == '\t' || !c)
+			if(c == ' ' || c == '\n' || c == 'LF' || c == 'CR' || c == '\t' || !c) /* Ignore spaces, new lines, line feeds and NULL characters */
 			{
-				if (c == '\n' || c == 'LF' || c == 'CR')
+				if (c == '\n' || c == 'LF' || c == 'CR') /* Increment line count on new line */
 					++line;
 				continue;
 			}
@@ -180,7 +182,7 @@ Token mlwpar_next_token(Buffer * sc_buf)
 			}
 			if (c == '.')
 			{
-				b_setmark(sc_buf, b_getc_offset(sc_buf));
+				b_setmark(sc_buf, b_getc_offset(sc_buf));/* Set mark on the '.' char */
 				while(1) /* TRIGGERS WARNING: Intended infinite loop*/
 				{
 					++i;
@@ -188,12 +190,12 @@ Token mlwpar_next_token(Buffer * sc_buf)
 					switch(switch_AND_OR)
 					{
 					case 0:
-						if (c == vAND[i])
+						if (c == vAND[i]) /* Checks next character for matching character for .AND. Token */
 							switch_AND_OR = 1;
-						else if (c == vOR[i])
+						else if (c == vOR[i]) /* Checks next character for matching character for .OR. Token */
 							switch_AND_OR = 2;
 						else 
-						{ b_retract_to_mark(sc_buf); t = errSymbol('.'); return t;}
+						{ b_retract_to_mark(sc_buf); t = errSymbol('.'); return t;} /* Illegal character returns error code and retracts buffer */
 						break;
 					case 1:
 						if (c == vAND[i])
@@ -207,9 +209,9 @@ Token mlwpar_next_token(Buffer * sc_buf)
 						{ b_retract_to_mark(sc_buf); t = errSymbol('.'); return t;}
 					}
 					if (i == 2 && switch_AND_OR == 2)
-					{ t.code = LOG_OP_T; t.attribute.log_op = OR; return t; }
+					{ t.code = LOG_OP_T; t.attribute.log_op = OR; return t; } /* Set Token to .OR. Token */
 					if(i == 3 && switch_AND_OR == 1)
-					{ t.code = LOG_OP_T; t.attribute.log_op = AND; return t; }
+					{ t.code = LOG_OP_T; t.attribute.log_op = AND; return t; } /* Set Token to .AND. Token */
 				}
 			}
 		}
@@ -219,17 +221,16 @@ Token mlwpar_next_token(Buffer * sc_buf)
 		{
 			if ((c = b_getc(sc_buf)) == '<')
 			{
-				while ((c = b_getc(sc_buf)) != '\n' && c != 255) {}
-				if (c == 255) b_retract(sc_buf);
+				while ((c = b_getc(sc_buf)) != '\n' && c != SEOF) {} /* Ignores characters until next line or SEOF is reached */
 			}
 			else 
 			{ 
 				t.code = ERR_T;
 				errComment[1] = c;
-				t.attribute.err_lex[0] = errComment[0]; 
-				t.attribute.err_lex[1] = errComment[1]; 
-				t.attribute.err_lex[2] = errComment[2]; 
-				while ((c = b_getc(sc_buf)) != '\n' && c != 255) {}
+				t.attribute.err_lex[0] = errComment[0]; /* Set to '"' */
+				t.attribute.err_lex[1] = errComment[1]; /* Set erroneous character */
+				t.attribute.err_lex[2] = errComment[2]; /* Set to \0 */
+				while ((c = b_getc(sc_buf)) != '\n' && c != SEOF) {} /* Ignores characters until next line or SEOF is reached */
 				return t; 
 			}
 			continue;
@@ -238,11 +239,11 @@ Token mlwpar_next_token(Buffer * sc_buf)
 		{
 			b_setmark(sc_buf, b_getc_offset(sc_buf));
 			b_setmark(str_LTBL, str_LTBL_mark);
-			validString = (BOOL) copyString(sc_buf, str_LTBL, increment = getString(sc_buf, 0));
-			if (!validString) { t = errorString(sc_buf); return t; }
+			validString = (BOOL) copyString(sc_buf, str_LTBL, increment = getString(sc_buf, 0)); /* Copy string from buffer to str_LTBL */
+			if (!validString) { t = errorString(sc_buf); return t; } /* Return error token if string is illegal */
 			t.code = STR_T; 
 			t.attribute.str_offset = str_LTBL_mark; 
-			str_LTBL_mark += increment + 1;
+			str_LTBL_mark += increment + 1; /* Set new mark for first empty space in str_LTBL buffer */
 			b_getc(sc_buf);
 			if (increment == 0)
 				b_retract(sc_buf);
@@ -250,11 +251,11 @@ Token mlwpar_next_token(Buffer * sc_buf)
 		}
 
 		/* process runtime error */
-		if (c == 254) { scerrnum = 100; t = runError(); return t; }
+		if (c == RUNERROR) { scerrnum = 100; t = runError(); return t; }
 
 		/* implementation of finite state machine */
 		if (!isalpha(c) && !isdigit(c)) { t = errSymbol(c); return t; }
-		b_setmark(sc_buf, b_getc_offset(sc_buf));
+		b_setmark(sc_buf, b_getc_offset(sc_buf)); /* Set mark on first character of lexeme */
 		while(1)  /* TRIGGERS WARNING: Intended infinite loop*/
 		{
 			state = get_next_state(state, c, &accept);
@@ -267,8 +268,8 @@ Token mlwpar_next_token(Buffer * sc_buf)
 
 		lexstart = b_mark(sc_buf);
 		lexend = b_getc_offset(sc_buf);
-		lex_buf = b_create(b_capacity(sc_buf), 0, 'f');
-		b_retract_to_mark(sc_buf);
+		lex_buf = b_create(b_capacity(sc_buf), 0, 'f'); /* Create temporary buffer for lexeme */
+		b_retract_to_mark(sc_buf); /* Retract to start of lexeme */
 		b_retract(sc_buf);
 		while (b_getc_offset(sc_buf) < (state == ES ? lexend : lexend - 1))
 		{
@@ -276,7 +277,7 @@ Token mlwpar_next_token(Buffer * sc_buf)
 		}
 		b_addc(lex_buf,'\0');
 		if (state == ES)
-			t = aa_table[12](b_setmark(lex_buf, 0));
+			t = aa_table[ES](b_setmark(lex_buf, 0));
 		else
 			t = aa_table[state](b_setmark(lex_buf, 0));
 		b_destroy(lex_buf);
@@ -471,18 +472,19 @@ Token aa_func10(char lexeme[]) {
 }
 
 /*******************************************************************************
-Purpose:			Accepting funciton for error token
+Purpose:			Accepting function for error token
 Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/10/24
 Called Functions:	strlen()
 Parameters:			char*
-Return Value:		
-Algorithm:			
+Return Value:		err_VID_LEN_atrbt()
+Algorithm:			Calls err_VID_LEN_atrbt() which returns Token attribute
+					and sets Token code to ERR_T
 *******************************************************************************/
 Token aa_func12(char lexeme[]) {
-	Token err_VID_LEN_atrbt (char, char*);
+	Token err_VID_LEN_atrbt (unsigned short, char*);
 	Token t;
-	t = err_VID_LEN_atrbt (ERR_LEN, lexeme);
+	t = err_VID_LEN_atrbt(ERR_LEN, lexeme);
 	t.code = ERR_T;
 	return t;
 }
@@ -506,7 +508,7 @@ long atool(char *lexeme) {
 
 /*******************************************************************************
 Purpose:			Determines if lexeme is a valid keyword in Platypus language
-Author:				Bryden Lacelle & Justin Farinaccio
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/10/23
 Called Functions:	strstr()
 Parameters:			char*
@@ -525,18 +527,23 @@ int iskeyword(char *kw_lexeme) {
 }
 
 /*******************************************************************************
-Purpose:			
+Purpose:			Get the length of string token
 Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/10/xx
+History/Versions:	Version 1.0, 2015/10/27
 Called Functions:	b_getc(), b_retract_to_mark(), getString()
 Parameters:			Buffer*, short
-Return Value:		
-Algorithm:			
+Return Value:		short
+Algorithm:			Calls the function recursivally incrementing counteruntil a 
+					quotation mark is reached returning the value of counter
+					If a string terminator is reached a negative value for the 
+					length of the string is returned
+					In all cases except when a quotation mark is the first char
+					the buffer retracts to the beginning of the string
 *******************************************************************************/
 short getString(Buffer* tsc_Buf, short counter)
 {
 	char c = b_getc(tsc_Buf);
-	if (c == '\n' || c == 'CR')
+	if (c == '\n' || c == 'CR') /* Increment line count on new line*/
 		++line;
 	if (c == '\0') { b_retract_to_mark(tsc_Buf); return -1; }
 	if (c != '"') { return getString(tsc_Buf, ++counter); }
@@ -546,31 +553,37 @@ short getString(Buffer* tsc_Buf, short counter)
 }
 
 /*******************************************************************************
-Purpose:			Copies valid string from scanner buffer into temporary buffer
+Purpose:			Copies valid string from scanner buffer into str_LTBL buffer
 Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/10/xx
-Called Functions:	b_addc(), b_getc(), copyString()
+History/Versions:	Version 1.0, 2015/10/27
+Called Functions:	b_addc(), b_getc(), copyString(), copyString()
 Parameters:			Buffer*, Buffer*, int
-Return Value:		
-Algorithm:			
+Return Value:		int
+Algorithm:			Recursivally call the function adding the next char in sc_buf
+					to str_LTBL until counter(the length of the string being copied)
+					reaches 0
 *******************************************************************************/
-int copyString(Buffer* s_Buf, Buffer* t_Buf, int counter)
+int copyString(Buffer* sc_Buf, Buffer* str_LTBL, int counter)
 {
-	if (counter < 0)
+	if (counter < 0) /* Invalid string length check */
 		return 0;
-	if (counter > 0 ) { b_addc(t_Buf, b_getc(s_Buf)); return copyString(s_Buf, t_Buf, --counter); }
-	b_addc(t_Buf, '\0');
+	if (counter > 0 ) { b_addc(str_LTBL, b_getc(sc_Buf)); return copyString(sc_Buf, str_LTBL, --counter); }
+	b_addc(str_LTBL, '\0'); /* When counter reaches 0 add string terminating character to str_LTBL*/
 	return 1;
 }
 
 /*******************************************************************************
-Purpose:			Displays invalid string
+Purpose:			Returns a Token for an invalid string
 Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/10/xx
+History/Versions:	Version 1.0, 2015/10/27
 Called Functions:	b_getc()
 Parameters:			Buffer*
-Return Value:		
-Algorithm:			
+Return Value:		Token
+Algorithm:			Calls b_getc() and stores the value in the Token attribute
+					until the end of string is reached or until the maximum
+					amount of chars that can stored in the attribute is reached
+					If so appended three dots to the string and loop through the 
+					remaining chars in the string until \0 is reached
 *******************************************************************************/
 Token errorString(Buffer* tsc_Buf)
 {
@@ -578,7 +591,7 @@ Token errorString(Buffer* tsc_Buf)
 	char counter = -1;
 	char c;
 	errToken.code = ERR_T;
-	b_retract(tsc_Buf);
+	b_retract(tsc_Buf); /* Retracts to the first quotation mark in the string */
 	while (++counter < ERR_LEN - 3)
 	{
 		c = b_getc(tsc_Buf);
@@ -587,19 +600,19 @@ Token errorString(Buffer* tsc_Buf)
 	}
 	for (counter; counter < ERR_LEN; ++counter)
 		errToken.attribute.err_lex[counter] = '.';
-	errToken.attribute.err_lex[ERR_LEN] = '\0';
-	while (b_getc(tsc_Buf)) {}
+	errToken.attribute.err_lex[ERR_LEN] = '\0'; /* Appended end of string character */
+	while (b_getc(tsc_Buf)) {} /* Loop through the remaining chars in the string */
 	return errToken;
 }
 
 /*******************************************************************************
 Purpose:			Displays of runtime error attribute
 Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/10/xx
+History/Versions:	Version 1.0, 2015/10/27
 Called Functions:	strcpy()
-Parameters:			N/A
-Return Value:		
-Algorithm:			
+Return Value:		Token
+Algorithm:			Sets Token code to an error and sets the Token to the declared
+					char* variable runErrors
 *******************************************************************************/
 Token runError()
 {
@@ -611,13 +624,14 @@ Token runError()
 }
 
 /*******************************************************************************
-Purpose:			Displays symbol that returns an error token
+Purpose:			Return a Token for an erroneous symbol
 Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/10/xx
+History/Versions:	Version 1.0, 2015/10/27
 Called Functions:	N/A
 Parameters:			char
-Return Value:		
-Algorithm:			
+Return Value:		Token
+Algorithm:			Sets Token code to an Error and sets the attribute to the 
+					erroneous symbol
 *******************************************************************************/
 Token errSymbol(char c)
 {
@@ -629,33 +643,62 @@ Token errSymbol(char c)
 }
 
 /*******************************************************************************
-Purpose:			
+Purpose:			Return the attribute for an err_lex or vid_lex for a Token
 Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/10/xx
+History/Versions:	Version 1.0, 2015/10/27
 Called Functions:	strlen()
 Parameters:			unsigned short, char*
 Return Value:		Token
-Algorithm:			
+Algorithm:			Accepts a length which is either equal to the maximum length
+					of a VID token attribute or ERR token attribute
+					If the length of the lexeme exceeds the value of length only
+					the first length of characters are stored in the attribute
+					with \0 being appended to the end of the lexeme
+					If the length of the lexeme does not exceed length all 
+					characters are stored and a \0 is appended to the end.
 *******************************************************************************/
 Token err_VID_LEN_atrbt (unsigned short length, char* lexeme)
 {
 	short i = -1;
 	Token t;
+	/* Set attribute to err_lex */
+	if (length == ERR_LEN)
+	{
+		if(strlen(lexeme) >= length) /* TRIGGERS WARNING Intentional comparison between signed and unsigned values*/
+		{
+			for(i; i < length; ++i)
+			{
+				t.attribute.err_lex[i] = lexeme[i];
+			}
+			t.attribute.err_lex[length] = '\0';
+		}
+		else 
+		{
+			for(i ; i < strlen(lexeme); ++i) /* TRIGGERS WARNING Intentional comparison between signed and unsigned values*/
+			{
+				t.attribute.err_lex[i] = lexeme[i];
+			}
+			t.attribute.err_lex[strlen(lexeme)] = '\0';
+		}
+		return t;
+	}
+	/* Set attribute to vid_lex */
 	if(strlen(lexeme) >= length) /* TRIGGERS WARNING Intentional comparison between signed and unsigned values*/
-	{
-		for(i; i < length; ++i)
 		{
-			t.attribute.err_lex[i] = lexeme[i];
+			for(i; i < length; ++i)
+			{
+				t.attribute.vid_lex[i] = lexeme[i];
+			}
+			t.attribute.vid_lex[length] = '\0';
 		}
-		t.attribute.err_lex[length] = '\0';
-	}
-	else 
-	{
-		for(i ; i < strlen(lexeme); ++i) /* TRIGGERS WARNING Intentional comparison between signed and unsigned values*/
+		else 
 		{
-			t.attribute.err_lex[i] = lexeme[i];
+			for(i ; i < strlen(lexeme); ++i) /* TRIGGERS WARNING Intentional comparison between signed and unsigned values*/
+			{
+				t.attribute.vid_lex[i] = lexeme[i];
+			}
+			t.attribute.vid_lex[strlen(lexeme)] = '\0';
 		}
-		t.attribute.err_lex[strlen(lexeme)] = '\0';
-	}
-	return t;
+		return t;
+	
 }
