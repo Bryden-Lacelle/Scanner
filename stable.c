@@ -32,24 +32,48 @@
 
 STD sym_table;
 /*******************************************************************************
-Purpose:			
-Author:				
-History/Versions:	
-Called Functions:	
-Parameters:			
-Return Value:		
+Purpose:			Creates a symbol table
+Author:				Justin Farinaccio
+History/Versions:	Version 1.0, 2015/11/14
+Called Functions:	calloc(), b_create()
+Parameters:			int
+Return Value:		STD [range?]
 Algorithm:			
 *******************************************************************************/
 STD st_create(int st_size) {
 
+STD s_table;
 
+	STVR *temp_s_table_vid_record;
+
+	// memory allocation for array of STVR with st_size number of elements
+	if(!(temp_s_table_vid_record = (STVR*)calloc(st_size, sizeof(STVR)))) {
+		s_table.st_size = 0;
+		return s_table;
+	};
+
+	// create self-incrementing buffer
+	Buffer *temp_buf;
+	if(!(temp_buf = b_create((short)st_size, 0, 'f'))) {	// are these parameters correct?
+		s_table.st_size = 0;
+		return s_table;
+	}
+	//temp_buf = b_create((short)st_size, 0, 'f');
+
+	s_table.plsBD = temp_buf;
+
+	s_table.st_offset = 0;
+
+	s_table.st_size = st_size;
+
+	return s_table;
 
 }
 
 /*******************************************************************************
 Purpose:			
 Author:				
-History/Versions:	
+History/Versions:	Version 1.0, 2015/11/14
 Called Functions:	
 Parameters:			
 Return Value:		
@@ -82,8 +106,8 @@ int st_lookup(STD sym_table, char *lexeme) {
 
 /*******************************************************************************
 Purpose:			
-Author:				
-History/Versions:	
+Author:				Bryden Lacelle
+History/Versions:	Version 1.0, 2015/11/14
 Called Functions:	
 Parameters:			
 Return Value:		
@@ -104,8 +128,8 @@ int st_update_type(STD sym_table, int vid_offset, char v_type) {
 
 /*******************************************************************************
 Purpose:			
-Author:				
-History/Versions:	
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/11/14
 Called Functions:	
 Parameters:			
 Return Value:		
@@ -120,8 +144,8 @@ int st_update_value(STD sym_table, int vid_offset, InitialValue i_value) {
 
 /*******************************************************************************
 Purpose:			
-Author:				
-History/Versions:	
+Author:				Bryden Lacelle
+History/Versions:	Version 1.0, 2015/11/14
 Called Functions:	
 Parameters:			
 Return Value:		
@@ -139,8 +163,8 @@ char st_get_type (STD sym_table, int vid_offset) {
 
 /*******************************************************************************
 Purpose:			
-Author:				
-History/Versions:	
+Author:				Bryden Lacelle
+History/Versions:	Version 1.0, 2015/11/14
 Called Functions:	
 Parameters:			
 Return Value:		
@@ -158,8 +182,8 @@ void st_destroy(STD sym_table) {
 
 /*******************************************************************************
 Purpose:			
-Author:				
-History/Versions:	
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2105/11/14
 Called Functions:	
 Parameters:			
 Return Value:		
@@ -168,7 +192,15 @@ Algorithm:
 int st_print(STD sym_table) {
 	sym_table.pstvr[0].o_line
 
+	if(sym_table.plsBD == NULL)	// or size == 0?
+		return R_FAIL_1;
 
+	printf("Symbol Table\n");
+	printf("____________\n");
+	printf("____________\n");
+	printf("Line Number   Variable Identifier\n");
+
+	printf("%d %s\n", sym_table.pstvr->o_line, sym_table.pstvr->plex);
 }
 
 /*******************************************************************************
@@ -216,8 +248,8 @@ int st_store(STD sym_table) {
 
 /*******************************************************************************
 Purpose:			
-Author:				
-History/Versions:	
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/11/14
 Called Functions:	
 Parameters:			
 Return Value:		
