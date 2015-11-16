@@ -14,23 +14,26 @@
 *******************************************************************************/
 
 #define _CRT_SECURE_NO_WARNINGS
-#define ISSTRING	6				//0000000000000110
-#define STRINGFLAG	6				//0000000000000110
-#define ISINT		4				//0000000000000100
-#define INTFLAG		4				//0000000000000100
-#define ISFLOAT		2				//0000000000000010
-#define FLOATFLAG	2				//0000000000000010
-#define UPDATEFLAG	1				//0000000000000001
-#define UFLOATFLAG	65531			//1111111111111011
-#define UINTFLAG	65533			//1111111111111101
+#define ISSTRING		6				//0000000000000110
+#define STRINGFLAG		6				//0000000000000110
+#define ISINT			4				//0000000000000100
+#define INTFLAG			4				//0000000000000100
+#define ISFLOAT			2				//0000000000000010
+#define FLOATFLAG		2				//0000000000000010
+#define UPDATEFLAG		1				//0000000000000001
+#define UFLOATFLAG		65531			//1111111111111011
+#define UINTFLAG		65533			//1111111111111101
+#define SSTRINGFLAG		65535			//1111111111111111
+#define DEFAULT_STATUS	65528			//1111111111111000
 
 /* project header files */
+#include <string.h>
 #include "buffer.h"
 #include "token.h"
 #include "table.h"
 #include "stable.h"
 
-STD sym_table;
+STD g_sym_table;
 /*******************************************************************************
 Purpose:			Creates a symbol table
 Author:				Justin Farinaccio
@@ -80,11 +83,21 @@ Return Value:
 Algorithm:			
 *******************************************************************************/
 int st_install(STD sym_table, char *lexeme, char type, int line) {
-	if (st_lookup(sym_table, lexeme) == R_FAIL_1)
-	{ /*TO-DO*/ }
-	//sym_table.st_offset = sym_table.plsBD->getc_offset;
-	sym_table.pstvr->plex = lexeme;
-	sym_table.pstvr->o_line = line;
+	int i = -1, st_lookup_val;
+	if ((st_lookup_val = st_lookup(sym_table, lexeme)) != R_FAIL_1)
+	{ return st_lookup_val; }
+	while (++i < strlen(lexeme)) { b_addc(sym_table.plsBD, lexeme[i]); } /* Warning Dangling pointers ahead*/
+	sym_table.pstvr[sym_table.st_offset].plex = sym_table.plsBD->cb_head + sym_table.plsBD->addc_offset;
+	sym_table.pstvr[sym_table.st_offset].o_line = line;
+	sym_table.pstvr[sym_table.st_offset].status_field = DEFAULT_STATUS;
+	if (type = 'F')
+	{ sym_table.pstvr[sym_table.st_offset].status_field |= FLOATFLAG; sym_table.pstvr[sym_table.st_offset].i_value.fpl_val = 0.0; }
+	if (type = 'I')
+	{ sym_table.pstvr[sym_table.st_offset].status_field |= INTFLAG; sym_table.pstvr[sym_table.st_offset].i_value.int_val = 0; }
+	if (type = 'S')
+	{ sym_table.pstvr[sym_table.st_offset].status_field |= SSTRINGFLAG; sym_table.pstvr[sym_table.st_offset].i_value.str_offset = -1; }
+	++g_sym_table.st_offset;
+	return sym_table.st_offset;
 
 
 }
@@ -114,6 +127,8 @@ Return Value:
 Algorithm:			
 *******************************************************************************/
 int st_update_type(STD sym_table, int vid_offset, char v_type) {
+	if (!sym_table.st_size)
+		return R_FAIL_1;
 	if (sym_table.pstvr[vid_offset].status_field & STRINGFLAG == ISSTRING)
 		return R_FAIL_1;
 	if ((sym_table.pstvr[vid_offset].status_field & UPDATEFLAG) == 1) 
@@ -128,7 +143,7 @@ int st_update_type(STD sym_table, int vid_offset, char v_type) {
 
 /*******************************************************************************
 Purpose:			
-Author:				Bryden Lacelle & Justin Farinaccio
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/11/14
 Called Functions:	
 Parameters:			
@@ -190,7 +205,7 @@ Return Value:
 Algorithm:			
 *******************************************************************************/
 int st_print(STD sym_table) {
-	sym_table.pstvr[0].o_line
+	sym_table.pstvr[0].o_line;
 
 	if(sym_table.plsBD == NULL)	// or size == 0?
 		return R_FAIL_1;
