@@ -14,17 +14,17 @@
 *******************************************************************************/
 
 #define _CRT_SECURE_NO_WARNINGS
-#define ISSTRING		6				//0000000000000110
-#define STRINGFLAG		6				//0000000000000110
-#define ISINT			4				//0000000000000100
-#define INTFLAG			4				//0000000000000100
-#define ISFLOAT			2				//0000000000000010
-#define FLOATFLAG		2				//0000000000000010
-#define UPDATEFLAG		1				//0000000000000001
-#define UFLOATFLAG		65531			//1111111111111011
-#define UINTFLAG		65533			//1111111111111101
-#define SSTRINGFLAG		65535			//1111111111111111
-#define DEFAULT_STATUS	65528			//1111111111111000
+#define ISSTRING		6				// 0000000000000110
+#define STRINGFLAG		6				// 0000000000000110
+#define ISINT			4				// 0000000000000100
+#define INTFLAG			4				// 0000000000000100
+#define ISFLOAT			2				// 0000000000000010
+#define FLOATFLAG		2				// 0000000000000010
+#define UPDATEFLAG		1				// 0000000000000001
+#define UFLOATFLAG		65531			// 1111111111111011
+#define UINTFLAG		65533			// 1111111111111101
+#define SSTRINGFLAG		65535			// 1111111111111111
+#define DEFAULT_STATUS	65528			// 1111111111111000
 
 /* project header files */
 #include <string.h>
@@ -75,8 +75,8 @@ STD s_table;
 
 /*******************************************************************************
 Purpose:			
-Author:				
-History/Versions:	Version 1.0, 2015/11/14
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/11/14, 15
 Called Functions:	
 Parameters:			
 Return Value:		
@@ -98,23 +98,31 @@ int st_install(STD sym_table, char *lexeme, char type, int line) {
 	{ sym_table.pstvr[sym_table.st_offset].status_field |= SSTRINGFLAG; sym_table.pstvr[sym_table.st_offset].i_value.str_offset = -1; }
 	++g_sym_table.st_offset;
 	return sym_table.st_offset;
+	
+	if(st_lookup(sym_table, lexeme) != R_FAIL_1) { return sym_table.st_offset; }
 
-
+	if(sym_table.st_offset == sym_table.st_size) { return R_FAIL_1; }
 }
 
 /*******************************************************************************
 Purpose:			
-Author:				
-History/Versions:	
+Author:				Justin Farinaccio
+History/Versions:	Version 1.0, 2015/11/15
 Called Functions:	
 Parameters:			
 Return Value:		
 Algorithm:			
 *******************************************************************************/
 int st_lookup(STD sym_table, char *lexeme) {
+	int i = g_sym_table.st_offset + 1;
+	if(sym_table.st_size == 0) { return R_FAIL_1; }
 
-
-
+	while(--i) {
+		if(strcmp(sym_table.pstvr[i].plex, lexeme) == 0) {
+			return sym_table.st_offset;
+		}
+	}
+	return R_FAIL_1;
 }
 
 /*******************************************************************************
@@ -197,7 +205,7 @@ void st_destroy(STD sym_table) {
 
 /*******************************************************************************
 Purpose:			
-Author:				Bryden Lacelle & Justin Farinaccio
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2105/11/14
 Called Functions:	
 Parameters:			
@@ -220,30 +228,28 @@ int st_print(STD sym_table) {
 
 /*******************************************************************************
 Purpose:			
-Author:				
-History/Versions:	
+Author:				Justin Farinaccio
+History/Versions:	Version 1.0, 2105/11/15
 Called Functions:	
 Parameters:			
 Return Value:		
 Algorithm:			
 *******************************************************************************/
 static void st_setsize(void) {
-
-
-
+	g_sym_table.st_size = 0;
 }
 
 /*******************************************************************************
 Purpose:			
-Author:				
-History/Versions:	
+Author:				Justin Farinaccio
+History/Versions:	Version 1.0, 2105/11/15
 Called Functions:	
 Parameters:			
 Return Value:		
 Algorithm:			
 *******************************************************************************/
 static void st_incoffset(void) {
-	
+	g_sym_table.st_offset++;
 }
 
 /*******************************************************************************
