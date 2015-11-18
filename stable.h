@@ -4,7 +4,7 @@
 #ifndef BUFFER_H_
 #include "buffer.h"
 #endif
-
+STD g_sym_table;
 typedef union InitialValue {
 	int int_val;						/* integer variable initial value */
 	float fpl_val;						/* floating-point variable initial value */
