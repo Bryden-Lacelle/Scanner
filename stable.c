@@ -61,7 +61,6 @@ STD s_table;
 		s_table.st_size = 0;
 		return s_table;
 	}
-	//temp_buf = b_create((short)st_size, 0, 'f');
 
 	s_table.plsBD = temp_buf;
 
@@ -70,7 +69,6 @@ STD s_table;
 	s_table.st_size = st_size;
 
 	return s_table;
-
 }
 
 /*******************************************************************************
@@ -143,7 +141,6 @@ int st_update_type(STD sym_table, int vid_offset, char v_type) {
 	if (v_type = 'I')
 		sym_table.pstvr[vid_offset].status_field |= UINTFLAG;
 	return vid_offset;
-
 }
 
 /*******************************************************************************
@@ -251,17 +248,35 @@ static void st_incoffset(void) {
 
 /*******************************************************************************
 Purpose:			
-Author:				
-History/Versions:	
+Author:				Justin Farinaccio
+History/Versions:	Version 1.0, 2015/11/18
 Called Functions:	
 Parameters:			
 Return Value:		
 Algorithm:			
 *******************************************************************************/
 int st_store(STD sym_table) {
+	FILE *fp;
+	char c;
+	unsigned int i = 0;
+	
+	fp = fopen("$stable.ste", "w");
 
+	if(fp == NULL) { return R_FAIL_1; }
+	
+	fputc(sym_table.st_size, fp);
 
+	for(i = 0; i < sym_table.st_offset; i++) {
+		fprintf(fp, "\n%x ", "%d ", "%s ", "%d ", sym_table.pstvr[i].status_field, strlen(sym_table.pstvr[i].plex), 
+			sym_table.pstvr[i].plex, sym_table.pstvr[i].o_line);
 
+		c = st_get_type(sym_table, i);
+		if(c == 'I')		{ fprintf(fp, "%d", sym_table.pstvr[i].i_value.int_val); }
+		else if(c == 'F')	{ fprintf(fp, "%f", sym_table.pstvr[i].i_value.fpl_val); }
+		else if(c == 'S')	{ fprintf(fp, "%d", sym_table.pstvr[i].i_value.str_offset); }
+	}
+	printf("Symbol Table stored");
+	return sym_table.st_offset-1;
 }
 
 /*******************************************************************************
