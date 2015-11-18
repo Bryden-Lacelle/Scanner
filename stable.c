@@ -30,10 +30,8 @@
 #include <string.h>
 #include "buffer.h"
 #include "token.h"
-#include "table.h"
 #include "stable.h"
-
-STD g_sym_table = st_create(50);
+STD sym_table;
 /*******************************************************************************
 Purpose:			Creates a symbol table
 Author:				Justin Farinaccio
@@ -48,6 +46,7 @@ STD st_create(int st_size) {
 STD s_table;
 
 	STVR *temp_s_table_vid_record;
+	Buffer* temp_buf;
 
 	// memory allocation for array of STVR with st_size number of elements
 	if(!(temp_s_table_vid_record = (STVR*)calloc(st_size, sizeof(STVR)))) {
@@ -56,7 +55,6 @@ STD s_table;
 	};
 
 	// create self-incrementing buffer
-	Buffer *temp_buf;
 	if(!(temp_buf = b_create((short)st_size, 15, 'a'))) {	// are these parameters correct?
 		s_table.st_size = 0;
 		return s_table;
@@ -95,7 +93,7 @@ int st_install(STD sym_table, char *lexeme, char type, int line) {
 	{ sym_table.pstvr[sym_table.st_offset].status_field |= INTFLAG; sym_table.pstvr[sym_table.st_offset].i_value.int_val = 0; }
 	if (type = 'S')
 	{ sym_table.pstvr[sym_table.st_offset].status_field |= SSTRINGFLAG; sym_table.pstvr[sym_table.st_offset].i_value.str_offset = -1; }
-	++g_sym_table.st_offset;
+	++sym_table.st_offset;
 	return sym_table.st_offset;
 }
 
@@ -109,7 +107,7 @@ Return Value:
 Algorithm:			
 *******************************************************************************/
 int st_lookup(STD sym_table, char *lexeme) {
-	int i = g_sym_table.st_offset + 1;
+	int i = sym_table.st_offset + 1;
 	if(sym_table.st_size == 0) { return R_FAIL_1; }
 
 	while(--i) {
@@ -132,7 +130,7 @@ Algorithm:
 int st_update_type(STD sym_table, int vid_offset, char v_type) {
 	if (!sym_table.st_size)
 		return R_FAIL_1;
-	if (sym_table.pstvr[vid_offset].status_field & STRINGFLAG == ISSTRING)
+	if ((sym_table.pstvr[vid_offset].status_field & STRINGFLAG) == ISSTRING)
 		return R_FAIL_1;
 	if ((sym_table.pstvr[vid_offset].status_field & UPDATEFLAG) == 1) 
 		return R_FAIL_1;
@@ -169,11 +167,11 @@ Return Value:
 Algorithm:			
 *******************************************************************************/
 char st_get_type (STD sym_table, int vid_offset) {
-	if (sym_table.pstvr[vid_offset].status_field & STRINGFLAG == ISSTRING)
+	if ((sym_table.pstvr[vid_offset].status_field & STRINGFLAG) == ISSTRING)
 		return 'S';
-	if (sym_table.pstvr[vid_offset].status_field & INTFLAG == ISINT)
+	if ((sym_table.pstvr[vid_offset].status_field & INTFLAG) == ISINT)
 		return 'I';
-	if (sym_table.pstvr[vid_offset].status_field & FLOATFLAG == ISFLOAT)
+	if ((sym_table.pstvr[vid_offset].status_field & FLOATFLAG) == ISFLOAT)
 		return 'F';
 	return R_FAIL_1;
 }
@@ -238,6 +236,7 @@ int st_print(STD sym_table) {
 		cntr = -1;
 		printf("%d %s\n", sym_table.pstvr[i].o_line, sym_table.pstvr->plex);
 	}
+	return sym_table.st_offset;
 }
 
 /*******************************************************************************
@@ -250,7 +249,7 @@ Return Value:
 Algorithm:			
 *******************************************************************************/
 static void st_setsize(void) {
-	g_sym_table.st_size = 0;
+	sym_table.st_size = 0;
 }
 
 /*******************************************************************************
@@ -263,7 +262,7 @@ Return Value:
 Algorithm:			
 *******************************************************************************/
 static void st_incoffset(void) {
-	g_sym_table.st_offset++;
+	sym_table.st_offset++;
 }
 
 /*******************************************************************************
