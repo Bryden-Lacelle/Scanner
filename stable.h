@@ -4,7 +4,6 @@
 #ifndef BUFFER_H_
 #include "buffer.h"
 #endif
-STD g_sym_table;
 typedef union InitialValue {
 	int int_val;						/* integer variable initial value */
 	float fpl_val;						/* floating-point variable initial value */
@@ -25,7 +24,7 @@ typedef struct SymbolTableDescriptor {
 	int st_offset;						/* offset in number of STVR elements */
 	Buffer *plsBD;						/* pointer to the lexeme storage buffer descriptor */
 } STD;
-
+STD g_sym_table;
 STD st_create(int);
 int st_install(STD, char*, char, int);
 int st_lookup(STD, char*);
