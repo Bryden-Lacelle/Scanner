@@ -200,14 +200,24 @@ void st_destroy(STD sym_table) {
 /*******************************************************************************
 Purpose:			
 Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2105/11/14
+History/Versions:	Version 1.0, 2105/11/14, 18
 Called Functions:	
 Parameters:			
 Return Value:		
 Algorithm:			
 *******************************************************************************/
 int st_print(STD sym_table) {
-	sym_table.pstvr[0].o_line;
+	int ex(int, int);
+	
+	unsigned int max_lines = sym_table.pstvr[sym_table.st_offset].o_line;
+	unsigned int max_line_magnitude = 0;
+	unsigned int current_line_magnitude = 0;
+	unsigned int i = -1;
+	unsigned int cntr = -1;
+
+	while((max_lines /= 10) > 0) {
+		max_line_magnitude++;
+	}
 
 	if(sym_table.plsBD == NULL)	// or size == 0?
 		return R_FAIL_1;
@@ -217,7 +227,17 @@ int st_print(STD sym_table) {
 	printf("____________\n");
 	printf("Line Number   Variable Identifier\n");
 
-	printf("%d %s\n", sym_table.pstvr->o_line, sym_table.pstvr->plex);
+	
+	while(++i < sym_table.st_offset) {
+		while(sym_table.pstvr[max_lines].o_line > (10 * ex(10, current_line_magnitude) - 1)) {
+			++current_line_magnitude;
+		}
+		while(++cntr < (max_line_magnitude - current_line_magnitude)) {
+			printf(" ");
+		}
+		cntr = -1;
+		printf("%d %s\n", sym_table.pstvr[i].o_line, sym_table.pstvr->plex);
+	}
 }
 
 /*******************************************************************************
