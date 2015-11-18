@@ -33,7 +33,7 @@
 #include "table.h"
 #include "stable.h"
 
-STD g_sym_table;
+STD g_sym_table = st_create(50);
 /*******************************************************************************
 Purpose:			Creates a symbol table
 Author:				Justin Farinaccio
@@ -57,7 +57,7 @@ STD s_table;
 
 	// create self-incrementing buffer
 	Buffer *temp_buf;
-	if(!(temp_buf = b_create((short)st_size, 0, 'f'))) {	// are these parameters correct?
+	if(!(temp_buf = b_create((short)st_size, 15, 'a'))) {	// are these parameters correct?
 		s_table.st_size = 0;
 		return s_table;
 	}
@@ -84,6 +84,7 @@ Algorithm:
 *******************************************************************************/
 int st_install(STD sym_table, char *lexeme, char type, int line) {
 	int i = -1, st_lookup_val;
+	if(sym_table.st_offset == sym_table.st_size) { return R_FAIL_1; }
 	if ((st_lookup_val = st_lookup(sym_table, lexeme)) != R_FAIL_1)
 	{ return st_lookup_val; }
 	while (++i < strlen(lexeme)) { b_addc(sym_table.plsBD, lexeme[i]); } /* Warning Dangling pointers ahead*/
@@ -98,10 +99,6 @@ int st_install(STD sym_table, char *lexeme, char type, int line) {
 	{ sym_table.pstvr[sym_table.st_offset].status_field |= SSTRINGFLAG; sym_table.pstvr[sym_table.st_offset].i_value.str_offset = -1; }
 	++g_sym_table.st_offset;
 	return sym_table.st_offset;
-	
-	if(st_lookup(sym_table, lexeme) != R_FAIL_1) { return sym_table.st_offset; }
-
-	if(sym_table.st_offset == sym_table.st_size) { return R_FAIL_1; }
 }
 
 /*******************************************************************************
