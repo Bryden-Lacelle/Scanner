@@ -14,24 +14,23 @@
 *******************************************************************************/
 
 #define _CRT_SECURE_NO_WARNINGS
-#define ISSTRING		6				// 0000000000000110
-#define STRINGFLAG		6				// 0000000000000110
-#define ISINT			4				// 0000000000000100
-#define INTFLAG			4				// 0000000000000100
-#define ISFLOAT			2				// 0000000000000010
-#define FLOATFLAG		2				// 0000000000000010
-#define UPDATEFLAG		1				// 0000000000000001
-#define UFLOATFLAG		65531			// 1111111111111011
-#define UINTFLAG		65533			// 1111111111111101
-#define SSTRINGFLAG		65535			// 1111111111111111
-#define DEFAULT_STATUS	65528			// 1111111111111000
+#define ISSTRING		6				/* 0000000000000110 */
+#define STRINGFLAG		6				/* 0000000000000110 */
+#define ISINT			4				/* 0000000000000100 */
+#define INTFLAG			4				/* 0000000000000100 */
+#define ISFLOAT			2				/* 0000000000000010 */ 
+#define FLOATFLAG		2				/* 0000000000000010 */
+#define UPDATEFLAG		1				/* 0000000000000001 */
+#define UFLOATFLAG		65531			/* 1111111111111011 */
+#define UINTFLAG		65533			/* 1111111111111101 */
+#define SSTRINGFLAG		65535			/* 1111111111111111 */
+#define DEFAULT_STATUS	65528			/* 1111111111111000 */
 
 /* project header files */
 #include <string.h>
 #include "buffer.h"
-#include "token.h"
 #include "stable.h"
-STD sym_table;
+extern STD sym_table;
 /*******************************************************************************
 Purpose:			Creates a symbol table
 Author:				Justin Farinaccio
@@ -55,11 +54,11 @@ STD s_table;
 	};
 
 	// create self-incrementing buffer
-	if(!(temp_buf = b_create((short)st_size, 15, 'a'))) {	// are these parameters correct?
+	if(!(temp_buf = b_create(1, 1, 'a'))) {	// are these parameters correct?
 		s_table.st_size = 0;
 		return s_table;
 	}
-
+	s_table.pstvr = temp_s_table_vid_record;
 	s_table.plsBD = temp_buf;
 
 	s_table.st_offset = 0;
@@ -79,21 +78,24 @@ Return Value:
 Algorithm:			
 *******************************************************************************/
 int st_install(STD sym_table, char *lexeme, char type, int line) {
-	int i = -1, st_lookup_val;
+	int i = -1, st_lookup_val, offset = sym_table.plsBD->addc_offset;
 	if(sym_table.st_offset == sym_table.st_size) { return R_FAIL_1; }
 	if ((st_lookup_val = st_lookup(sym_table, lexeme)) != R_FAIL_1)
 	{ return st_lookup_val; }
 	while (++i < strlen(lexeme)) { b_addc(sym_table.plsBD, lexeme[i]); } /* Warning Dangling pointers ahead*/
-	sym_table.pstvr[sym_table.st_offset].plex = sym_table.plsBD->cb_head + sym_table.plsBD->addc_offset;
+	b_addc(sym_table.plsBD, '\0');
+	++i;
+	sym_table.pstvr[sym_table.st_offset].plex = (char*) malloc(sizeof(char) * i);
+	strcpy(sym_table.pstvr[sym_table.st_offset].plex, sym_table.plsBD->cb_head + offset);
 	sym_table.pstvr[sym_table.st_offset].o_line = line;
 	sym_table.pstvr[sym_table.st_offset].status_field = DEFAULT_STATUS;
-	if (type = 'F')
+	if (type == 'F')
 	{ sym_table.pstvr[sym_table.st_offset].status_field |= FLOATFLAG; sym_table.pstvr[sym_table.st_offset].i_value.fpl_val = 0.0; }
-	if (type = 'I')
+	if (type == 'I')
 	{ sym_table.pstvr[sym_table.st_offset].status_field |= INTFLAG; sym_table.pstvr[sym_table.st_offset].i_value.int_val = 0; }
-	if (type = 'S')
+	if (type == 'S')
 	{ sym_table.pstvr[sym_table.st_offset].status_field |= SSTRINGFLAG; sym_table.pstvr[sym_table.st_offset].i_value.str_offset = -1; }
-	++sym_table.st_offset;
+	sym_table.st_offset++;
 	return sym_table.st_offset;
 }
 
@@ -107,10 +109,10 @@ Return Value:
 Algorithm:			
 *******************************************************************************/
 int st_lookup(STD sym_table, char *lexeme) {
-	int i = sym_table.st_offset + 1;
+	int i = sym_table.st_offset;
 	if(sym_table.st_size == 0) { return R_FAIL_1; }
 
-	while(--i) {
+	while(--i >= 0) {
 		if(strcmp(sym_table.pstvr[i].plex, lexeme) == 0) {
 			return sym_table.st_offset;
 		}
@@ -134,9 +136,9 @@ int st_update_type(STD sym_table, int vid_offset, char v_type) {
 		return R_FAIL_1;
 	if ((sym_table.pstvr[vid_offset].status_field & UPDATEFLAG) == 1) 
 		return R_FAIL_1;
-	if (v_type = 'F')
+	if (v_type == 'F')
 		sym_table.pstvr[vid_offset].status_field |= UFLOATFLAG;
-	if (v_type = 'I')
+	if (v_type == 'I')
 		sym_table.pstvr[vid_offset].status_field |= UINTFLAG;
 	return vid_offset;
 }
@@ -186,7 +188,7 @@ Return Value:
 Algorithm:			
 *******************************************************************************/
 void st_destroy(STD sym_table) {
-	int i = sym_table.st_size;
+	int i = sym_table.st_offset;
 	while(--i >= 0)
 	{
 		free(sym_table.pstvr[i].plex);
@@ -207,11 +209,12 @@ Algorithm:
 int st_print(STD sym_table) {
 	int ex(int, int);
 	
-	unsigned int max_lines = sym_table.pstvr[sym_table.st_offset].o_line;
-	unsigned int max_line_magnitude = 0;
-	unsigned int current_line_magnitude = 0;
-	unsigned int i = -1;
-	unsigned int cntr = -1;
+	int max_lines = sym_table.pstvr[sym_table.st_offset - 1].o_line;
+	int max_line_magnitude = 0;
+	int current_line_magnitude = 0;
+	int default_num_spaces = 13;
+	int i = -1;
+	int cntr = -1;
 
 	while((max_lines /= 10) > 0) {
 		max_line_magnitude++;
@@ -226,15 +229,21 @@ int st_print(STD sym_table) {
 	printf("Line Number   Variable Identifier\n");
 
 	
-	while(++i < sym_table.st_offset) {
-		while(sym_table.pstvr[max_lines].o_line > (10 * ex(10, current_line_magnitude) - 1)) {
+	while(++i < sym_table.st_offset) 
+	{
+		while(sym_table.pstvr[i].o_line > (10 * ex(10, current_line_magnitude) - 1)) 
+		{
 			++current_line_magnitude;
 		}
-		while(++cntr < (max_line_magnitude - current_line_magnitude)) {
+		while(++cntr < (max_line_magnitude - current_line_magnitude)) 
+		{
 			printf(" ");
 		}
 		cntr = -1;
-		printf("%d %s\n", sym_table.pstvr[i].o_line, sym_table.pstvr->plex);
+		printf("%d", sym_table.pstvr[i].o_line);
+		while(--default_num_spaces - max_line_magnitude >= 0) { printf(" "); }
+		printf("%s\n", sym_table.pstvr[i].plex);
+		default_num_spaces = 13;
 	}
 	return sym_table.st_offset;
 }
