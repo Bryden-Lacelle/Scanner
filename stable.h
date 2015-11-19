@@ -24,7 +24,7 @@ typedef struct SymbolTableDescriptor {
 	int st_offset;						/* offset in number of STVR elements */
 	Buffer *plsBD;						/* pointer to the lexeme storage buffer descriptor */
 } STD;
-STD g_sym_table;
+extern STD g_sym_table;
 STD st_create(int);
 int st_install(STD, char*, char, int);
 int st_lookup(STD, char*);
