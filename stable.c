@@ -76,41 +76,49 @@ STD st_create(int st_size) {
 }
 
 /*******************************************************************************
-Purpose:			
+Purpose:			Add a new lexeme to the symbol table
 Author:				Bryden Lacelle & Justin Farinaccio
-History/Versions:	Version 1.0, 2015/11/14, 15
-Called Functions:	st_lookup(), strlen(), b_addc(), malloc(), strcpy(), st_incoffset()
-Parameters:			
-Return Value:		
-Algorithm:			
+History/Versions:	Version 1.0, 2015/11/20
+Called Functions:	st_lookup(), strlen(), b_addc(), st_incoffset(), b_setmark(), b_rflag()
+Parameters:			STD, char*, char, int
+Return Value:		int
+Algorithm:			Add the lexeme and end-of-string character to the symbol table buffer
+					If the memory location of the buffer changes set all plex pointers to new
+					memory addresses in the buffer. If the memory address of the buffer is 
+					unchanged only set the last plex pointer to it's corisponding lexeme in
+					the buffer
 *******************************************************************************/
 int st_install(STD sym_table, char *lexeme, char type, int line) {
-	int i = -1, st_lookup_val, offset = sym_table.plsBD->addc_offset;
+	int i = -1, st_lookup_val, offset = sym_table.plsBD->addc_offset; /* Set offset to the current addc_offset in plsBD */
 	char flag = 0;
-	/* if symbol table is full */
+	/* Check for NULL sym_table */
+	if (!sym_table.st_size)
+		return R_FAIL_1;
+	/* Check for full symbol table */
 	if(sym_table.st_offset == sym_table.st_size) { return R_FAIL_1; }
 	
-	/* if lexeme is found in symbol table */
+	/* Check if the lexeme exists in the sym_table */
 	if ((st_lookup_val = st_lookup(sym_table, lexeme)) != R_FAIL_1)		{ return st_lookup_val; }
 
+	/* Add lexeme to sym_table buffer */
 	while (++i <= strlen(lexeme)) 
 	{ 
 		b_addc(sym_table.plsBD, lexeme[i]);
-		if (b_rflag(sym_table.plsBD))
+		if (b_rflag(sym_table.plsBD)) /* Check if memory location of buffer changed */
 			flag = 1;
-	} /* Warning Dangling pointers ahead*/
-	i = -1;
+	}
 	if (flag)
 	{
+		i = -1;
 		while (++i <= sym_table.st_offset)
 		{
-			offset = 0; 
-			sym_table.pstvr[i].plex = b_setmark(sym_table.plsBD, offset); 
-			offset += strlen(b_setmark(sym_table.plsBD, offset) + 1); 
+			offset = 0; /* Set offset to 0 ie. plsBD->cb_head */
+			sym_table.pstvr[i].plex = b_setmark(sym_table.plsBD, offset); /* Set new pointer location */ 
+			offset += strlen(b_setmark(sym_table.plsBD, offset) + 1); /* Set offset to the start of the next lexeme */
 		}
 	}
 	else
-		sym_table.pstvr[sym_table.st_offset].plex = b_setmark(sym_table.plsBD, offset);
+		sym_table.pstvr[sym_table.st_offset].plex = b_setmark(sym_table.plsBD, offset); /* Set plex to the newly added lexeme in the buffer*/
 	sym_table.pstvr[sym_table.st_offset].o_line = line;
 	sym_table.pstvr[sym_table.st_offset].status_field = DEFAULT_STATUS;
 	
@@ -121,9 +129,9 @@ int st_install(STD sym_table, char *lexeme, char type, int line) {
 	if (type == 'S')
 	{ sym_table.pstvr[sym_table.st_offset].status_field |= SSTRINGFLAG; sym_table.pstvr[sym_table.st_offset].i_value.str_offset = -1; }
 	
-	st_incoffset();
+	st_incoffset(); /* Increment st_offset */
 	
-	/* current offset of lexeme entry */
+	/* Return offset of lexeme entered */
 	return sym_table.st_offset;
 }
 
@@ -162,43 +170,46 @@ Return Value:
 Algorithm:			
 *******************************************************************************/
 int st_update_type(STD sym_table, int vid_offset, char v_type) {
-	if (!sym_table.st_size)
+	if (!sym_table.st_size) /* Check for not NULL sym_table */
 		return R_FAIL_1;
-	if ((sym_table.pstvr[vid_offset].status_field & STRINGFLAG) == ISSTRING)
+	if ((sym_table.pstvr[vid_offset].status_field & STRINGFLAG) == ISSTRING) /* Return error if type is string */
 		return R_FAIL_1;
-	if ((sym_table.pstvr[vid_offset].status_field & UPDATEFLAG) == 1) 
+	if ((sym_table.pstvr[vid_offset].status_field & UPDATEFLAG) == 1) /* Return error if type has been changed already */
 		return R_FAIL_1;
 	if (v_type == 'F')
-		sym_table.pstvr[vid_offset].status_field |= UFLOATFLAG;
+		sym_table.pstvr[vid_offset].status_field |= UFLOATFLAG; /* Change type to float and set UPDATEFLAG */
 	if (v_type == 'I')
-		sym_table.pstvr[vid_offset].status_field |= UINTFLAG;
+		sym_table.pstvr[vid_offset].status_field |= UINTFLAG; /* Change type to int and set UPDATEFLAG */
 	return vid_offset;
 }
 
 /*******************************************************************************
-Purpose:			
+Purpose:			Update the initial value of a lexeme
 Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/11/14
-Called Functions:	
-Parameters:			
-Return Value:		
-Algorithm:			
+Called Functions:	N/A
+Parameters:			STD, int, InitialValue
+Return Value:		int
+Algorithm:			Set a single lexeme initial value to the passed in value i_value
 *******************************************************************************/
-int st_update_value(STD sym_table, int vid_offset, InitialValue i_value) {
-	if (!sym_table.plsBD)
+int st_update_value(STD sym_table, int vid_offset, InitialValue i_value)
+ {
+	if (!sym_table.st_size)
 		return R_FAIL_1;
 	sym_table.pstvr[vid_offset].i_value = i_value;
 	return vid_offset;
 }
 
 /*******************************************************************************
-Purpose:			
+Purpose:			Get the type of the lexeme
 Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/11/14
-Called Functions:	
-Parameters:			
-Return Value:		
-Algorithm:			
+Called Functions:	N/A
+Parameters:			STD, int
+Return Value:		char
+Algorithm:			Use bitwise aritmatic to determine the type of the passed in
+					lexeme type and return the type as a char associated with
+					the type
 *******************************************************************************/
 char st_get_type (STD sym_table, int vid_offset) {
 	if ((sym_table.pstvr[vid_offset].status_field & STRINGFLAG) == ISSTRING)
@@ -211,13 +222,14 @@ char st_get_type (STD sym_table, int vid_offset) {
 }
 
 /*******************************************************************************
-Purpose:			
+Purpose:			Free all allocated memory in the Symbol Table
 Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/11/14
-Called Functions:	
-Parameters:			
-Return Value:		
-Algorithm:			
+History/Versions:	Version 1.0, 2015/11/20
+Called Functions:	b_destroy(), free(), st_setsize();
+Parameters:			STD
+Return Value:		N/A
+Algorithm:			Free pstvr, destroy the sty_table buffer, set the size of
+					the sym_table to 0
 *******************************************************************************/
 void st_destroy(STD sym_table) {
 	int i = -1;
@@ -390,10 +402,10 @@ int st_sort(STD sym_table, char s_order) {
 /*******************************************************************************
 Purpose:			Calculate t to the power of x
 Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/xx/xx
-Called Functions:	N/A
+History/Versions:	Version 1.0, 2015/10/20
+Called Functions:	ex()
 Parameters:			int, int
 Return Value:		int
-Algorithm:			
+Algorithm:			Determine an interger power of an integer
 *******************************************************************************/
 int ex(int t, int x) { return (x > 0 ? t * ex(t, x-1) : 1); }
