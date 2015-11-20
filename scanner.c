@@ -362,10 +362,11 @@ Token aa_func02(char lexeme[]) {
 	{
 		t = err_VID_LEN_atrbt (VID_LEN, lexeme);
 		t.code = AVID_T;
-		if( t.attribute.err_lex[0] == 'i' || t.attribute.err_lex[0] == 'o' || t.attribute.err_lex[0] == 'd' || t.attribute.err_lex[0] == 'd')
+		/* Set type of AVID to int when lexeme starts with 'a', 'd', 'i' or 'w' */
+		if( t.attribute.err_lex[0] == 'i' || t.attribute.err_lex[0] == 'o' || t.attribute.err_lex[0] == 'd' || t.attribute.err_lex[0] == 'w')
 			isInt = 1;
-		t.attribute.vid_offset = st_install(sym_table, t.attribute.err_lex, (isInt ? 'I' : 'F'), line);
-		if (t.attribute.vid_offset == R_FAIL_1)
+		t.attribute.vid_offset = st_install(sym_table, t.attribute.err_lex, (isInt ? 'I' : 'F'), line); /* Install lexeme to sym_table */
+		if (t.attribute.vid_offset == R_FAIL_1) /* Call st_store if sym_table is full */
 			{ st_store(sym_table); }
 	}
 	return t;
@@ -391,8 +392,8 @@ Token aa_func03(char lexeme[]) {
 	 * checking to ensure variable name is of proper length */
 	t.attribute.err_lex[strlen(lexeme) >= VID_LEN-1 ? VID_LEN-1 : strlen(lexeme)] = '%';
 	t.attribute.err_lex[strlen(lexeme) >= VID_LEN ? VID_LEN  : strlen(lexeme) + 1] = '\0';
-	t.attribute.vid_offset = st_install(sym_table, t.attribute.err_lex, 'S', line);
-	if (t.attribute.vid_offset == R_FAIL_1)
+	t.attribute.vid_offset = st_install(sym_table, t.attribute.err_lex, 'S', line); /* install lexeme into symbol table */
+	if (t.attribute.vid_offset == R_FAIL_1) /* Called st_store if symbol table is full */
 	{
 		st_store(sym_table);
 	}
@@ -670,43 +671,22 @@ Token err_VID_LEN_atrbt (unsigned short length, char* lexeme)
 	short i = -1; /* incrementing variable */
 	Token t; /* Initialize a new Token */
 	/* Set attribute to err_lex */
-	/*if (length == ERR_LEN)
-	{*/
-		if(strlen(lexeme) >= length)
+	if(strlen(lexeme) >= length)
+	{
+		while (++i < length)
 		{
-			while (++i < length)
-			{
-				t.attribute.err_lex[i] = lexeme[i];
-			}
-			t.attribute.err_lex[length] = '\0';
+			t.attribute.err_lex[i] = lexeme[i];
 		}
-		else 
+		t.attribute.err_lex[length] = '\0';
+	}
+	else 
+	{
+		while (++i < length)
 		{
-			while (++i < length)
-			{
-				t.attribute.err_lex[i] = lexeme[i];
-			}
-			t.attribute.err_lex[strlen(lexeme)] = '\0';
+			t.attribute.err_lex[i] = lexeme[i];
 		}
-		return t;
-	/*}*/
-	/* Set attribute to vid_lex */
-	/*if(strlen(lexeme) >= length)
-		{
-			while (++i < length)
-			{
-				t.attribute.vid_lex[i] = lexeme[i];
-			}
-			t.attribute.vid_lex[length] = '\0';
-		}
-		else 
-		{
-			while (++i < length)
-			{
-				t.attribute.vid_lex[i] = lexeme[i];
-			}
-			t.attribute.vid_lex[strlen(lexeme)] = '\0';
-		}
-		return t;*/
+		t.attribute.err_lex[strlen(lexeme)] = '\0';
+	}
+	return t;
 	
 }
