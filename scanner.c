@@ -366,7 +366,7 @@ Token aa_func02(char lexeme[]) {
 			isInt = 1;
 		t.attribute.vid_offset = st_install(sym_table, t.attribute.err_lex, (isInt ? 'I' : 'F'), line);
 		if (t.attribute.vid_offset == R_FAIL_1)
-			{ st_store(sym_table); exit(0); }
+			{ st_store(sym_table); }
 	}
 	return t;
 }
@@ -393,8 +393,8 @@ Token aa_func03(char lexeme[]) {
 	t.attribute.err_lex[strlen(lexeme) >= VID_LEN ? VID_LEN  : strlen(lexeme) + 1] = '\0';
 	t.attribute.vid_offset = st_install(sym_table, t.attribute.err_lex, 'S', line);
 	if (t.attribute.vid_offset == R_FAIL_1)
-	{ 
-		st_store(sym_table); exit(0); 
+	{
+		st_store(sym_table);
 	}
 	return t;
 }
@@ -710,4 +710,3 @@ Token err_VID_LEN_atrbt (unsigned short length, char* lexeme)
 		return t;*/
 	
 }
-
