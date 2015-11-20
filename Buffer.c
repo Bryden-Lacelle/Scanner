@@ -469,6 +469,7 @@ Buffer* b_pack (Buffer* const pBD)
 		{
 			if (old_mem_address != pBD->cb_head); /* Sets r_flag if memory location of cb_head changes */
 				pBD->r_flag = SET_R_FLAG;
+			pBD->r_flag = RESET_R_FLAG;
 			return pBD;
 		}
 	return NULL;
