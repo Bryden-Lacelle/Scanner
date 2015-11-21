@@ -35,6 +35,13 @@
 
 /* State transition table definition */
 #define TABLE_COLUMNS 7
+#define COL_CHAR	0		/* defintion of column for letters */
+#define COL_ZERO	1		/* defintion of column for 0 */
+#define COL_1TO7	2		/* defintion of column for digits 1 - 7 */
+#define COL_8TO9	3		/* defintion of column for digits 8 - 9 */
+#define COL_DCML	4		/* defintion of column for decimal point */
+#define COL_PERC	5		/* defintion of column for percent sign */
+#define COL_OTHR	6		/* defintion of column for other characters */
 
 /* Transition table - type of states defined in separate table */
 int st_table[ ][TABLE_COLUMNS] = {
@@ -60,7 +67,7 @@ int st_table[ ][TABLE_COLUMNS] = {
 #define NOAS 99	/* not accepting state */
 
 /* Accepting state table */
-int as_table[ ] = {NOAS, NOAS, ASWR, ASNR, NOAS, ASWR, NOAS, NOAS, ASWR, NOAS, ASWR, ASNR, ASWR};
+int as_table[ ] = {NOAS, NOAS, ASWR, ASWR, NOAS, ASWR, NOAS, NOAS, ASWR, NOAS, ASWR, ASNR, ASWR};
 
 /* Accepting action function declarations */
 Token aa_func02(char*);
