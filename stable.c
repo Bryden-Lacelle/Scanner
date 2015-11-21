@@ -1,35 +1,34 @@
-/* ASK SVILLEN ABOUT CHECKING FOR INVALID STD. IS CHECKING FOR SIZE = 0 OR CHEKING FOR NULL BUFFER? 
-	Does everytime the symbol table get updated does it copy that change to the global symbol table?*/
-
 /*******************************************************************************
-* File Name:		scanner.c
+* File Name:		stable.c
 * Compiler:			MS Visual Studio 2012
 * Authors:			Bryden Lacelle & Justin Farinaccio
 * Course:			CST8152 - Compilers, Lab Section 011
 * Assignment:		Assignment 3: The Symbol Table
 * Date:				November 20, 2015
 * Professor:		Svillen Ranev
-* Purpose:			
-* Function List:	
+* Purpose:			Implement and incorporate a symbol table in PLATYPUS compiler
+* Function List:	st_create()
+					st_install()
+					st_lookup()
+					st_update_type()
+					st_update_value()
+					st_get_type()
+					st_destroy()
+					st_print()
+					st_setsize()
+					st_incoffset()
+					st_store()
+					st_sort()
+					ex()
 *******************************************************************************/
 
-#define _CRT_SECURE_NO_WARNINGS
-#define ISSTRING		6				/* 0000000000000110 */
-#define STRINGFLAG		6				/* 0000000000000110 */
-#define ISINT			4				/* 0000000000000100 */
-#define INTFLAG			4				/* 0000000000000100 */
-#define ISFLOAT			2				/* 0000000000000010 */ 
-#define FLOATFLAG		2				/* 0000000000000010 */
-#define UPDATEFLAG		1				/* 0000000000000001 */
-#define UFLOATFLAG		65531			/* 1111111111111011 */
-#define UINTFLAG		65533			/* 1111111111111101 */
-#define SSTRINGFLAG		65535			/* 1111111111111111 */
-#define DEFAULT_STATUS	65528			/* 1111111111111000 */
-
 /* project header files */
+#include <stdlib.h>
 #include <string.h>
 #include "buffer.h"
 #include "stable.h"
+
+/* extern declaration */
 extern STD sym_table;
 
 /*******************************************************************************
@@ -38,8 +37,8 @@ Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/11/14
 Called Functions:	malloc(), sizeof(), b_create()
 Parameters:			int
-Return Value:		STD [range?]
-Algorithm:			
+Return Value:		STD
+Algorithm:			Sets parameters of new, empty symbol table
 *******************************************************************************/
 STD st_create(int st_size) {
 
@@ -51,13 +50,13 @@ STD st_create(int st_size) {
 	Buffer *temp_buf;
 
 	/* memory allocation for array of STVR with st_size number of elements */
-	if(!(temp_s_table_vid_record = (STVR*)malloc(st_size * sizeof(STVR)))) {
+	if(!(temp_s_table_vid_record = (STVR*)malloc(st_size * sizeof(STVR)))) { /* TRIGGERS WARNING Intentional assignment inside expression */
 		s_table.st_size = 0;
 		return s_table;
 	};
 
 	/* create self-incrementing buffer */
-	if(!(temp_buf = b_create(1, 1, 'a'))) {	// are these parameters correct?
+	if(!(temp_buf = b_create(1, 1, 'a'))) { /* TRIGGERS WARNING Intentional assignment inside expression */
 		s_table.st_size = 0;
 		return s_table;
 	}
@@ -101,7 +100,7 @@ int st_install(STD sym_table, char *lexeme, char type, int line) {
 	if ((st_lookup_val = st_lookup(sym_table, lexeme)) != R_FAIL_1)		{ return st_lookup_val; }
 
 	/* Add lexeme to sym_table buffer */
-	while (++i <= strlen(lexeme)) 
+	while (++i <= strlen(lexeme)) /* TRIGGERS WARNING Intentional signed/unsigned mismatch */
 	{ 
 		b_addc(sym_table.plsBD, lexeme[i]);
 		if (b_rflag(sym_table.plsBD)) /* Check if memory location of buffer changed */
@@ -110,14 +109,17 @@ int st_install(STD sym_table, char *lexeme, char type, int line) {
 	if (flag)
 	{
 		i = -1;
+		offset = 0; /* Set offset to 0 ie. plsBD->cb_head */
 		while (++i <= sym_table.st_offset)
 		{
-			offset = 0; /* Set offset to 0 ie. plsBD->cb_head */
+			/* TRIGGERS WARNING Intentional conversion */
 			sym_table.pstvr[i].plex = b_setmark(sym_table.plsBD, offset); /* Set new pointer location */ 
-			offset += strlen(b_setmark(sym_table.plsBD, offset) + 1); /* Set offset to the start of the next lexeme */
+			/* TRIGGERS WARNING Intentional conversion */
+			offset += strlen(b_setmark(sym_table.plsBD, offset)) + 1; /* Set offset to the start of the next lexeme */
 		}
 	}
 	else
+		/* TRIGGERS WARNING Intentional conversion */
 		sym_table.pstvr[sym_table.st_offset].plex = b_setmark(sym_table.plsBD, offset); /* Set plex to the newly added lexeme in the buffer*/
 	sym_table.pstvr[sym_table.st_offset].o_line = line;
 	sym_table.pstvr[sym_table.st_offset].status_field = DEFAULT_STATUS;
@@ -136,13 +138,13 @@ int st_install(STD sym_table, char *lexeme, char type, int line) {
 }
 
 /*******************************************************************************
-Purpose:			
+Purpose:			Searches for VIDs in symbol table
 Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/11/18
 Called Functions:	strcmp()
 Parameters:			STD, char*
 Return Value:		int
-Algorithm:			
+Algorithm:			Compares each VID name in symbol table with those in character array
 *******************************************************************************/
 int st_lookup(STD sym_table, char *lexeme) {
 	/* begin from last entry in symbol table */
@@ -150,9 +152,9 @@ int st_lookup(STD sym_table, char *lexeme) {
 
 	if(sym_table.st_size == 0)	{ return R_FAIL_1; }
 
-	/* starting from the last entry in the symbol table, compare the current lexeme to each lexeme stored in the character array */
+	/* starting from the last entry in the symbol table, compare the current VID name to each VID name stored in the character array */
 	while(--i >= 0) {
-		/* if the lexeme is found, return its offset (from the start of the array of STVR) */
+		/* if the VID name is found, return its offset (from the start of the array of STVR) */
 		if(strcmp(sym_table.pstvr[i].plex, lexeme) == 0) {
 			return sym_table.st_offset;
 		}
@@ -161,25 +163,32 @@ int st_lookup(STD sym_table, char *lexeme) {
 }
 
 /*******************************************************************************
-Purpose:			
+Purpose:			Update the type of a lexeme in the Symbol Table
 Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/11/14
-Called Functions:	
-Parameters:			
-Return Value:		
-Algorithm:			
+Called Functions:	N/A
+Parameters:			STD, int, char
+Return Value:		int
+Algorithm:			Change the type of a variable from float to int or from
+					int to float. If the type of the variable is a string or
+					has already been changed, return an error
 *******************************************************************************/
 int st_update_type(STD sym_table, int vid_offset, char v_type) {
-	if (!sym_table.st_size) /* Check for not NULL sym_table */
+	/* Check for not NULL sym_table */
+	if (!sym_table.st_size)
 		return R_FAIL_1;
-	if ((sym_table.pstvr[vid_offset].status_field & STRINGFLAG) == ISSTRING) /* Return error if type is string */
+	/* Return error if type is string */
+	if ((sym_table.pstvr[vid_offset].status_field & STRINGFLAG) == ISSTRING)
 		return R_FAIL_1;
-	if ((sym_table.pstvr[vid_offset].status_field & UPDATEFLAG) == 1) /* Return error if type has been changed already */
+	/* Return error if type has been changed already */
+	if ((sym_table.pstvr[vid_offset].status_field & UPDATEFLAG) == 1)
 		return R_FAIL_1;
+	/* Change type to float and set UPDATEFLAG */
 	if (v_type == 'F')
-		sym_table.pstvr[vid_offset].status_field |= UFLOATFLAG; /* Change type to float and set UPDATEFLAG */
+		sym_table.pstvr[vid_offset].status_field |= UFLOATFLAG;
+	/* Change type to int and set UPDATEFLAG */
 	if (v_type == 'I')
-		sym_table.pstvr[vid_offset].status_field |= UINTFLAG; /* Change type to int and set UPDATEFLAG */
+		sym_table.pstvr[vid_offset].status_field |= UINTFLAG;
 	return vid_offset;
 }
 
@@ -192,8 +201,7 @@ Parameters:			STD, int, InitialValue
 Return Value:		int
 Algorithm:			Set a single lexeme initial value to the passed in value i_value
 *******************************************************************************/
-int st_update_value(STD sym_table, int vid_offset, InitialValue i_value)
- {
+int st_update_value(STD sym_table, int vid_offset, InitialValue i_value) {
 	if (!sym_table.st_size)
 		return R_FAIL_1;
 	sym_table.pstvr[vid_offset].i_value = i_value;
@@ -207,7 +215,7 @@ History/Versions:	Version 1.0, 2015/11/14
 Called Functions:	N/A
 Parameters:			STD, int
 Return Value:		char
-Algorithm:			Use bitwise aritmatic to determine the type of the passed in
+Algorithm:			Use bitwise aritmetic to determine the type of the passed in
 					lexeme type and return the type as a char associated with
 					the type
 *******************************************************************************/
@@ -232,27 +240,30 @@ Algorithm:			Free pstvr, destroy the sty_table buffer, set the size of
 					the sym_table to 0
 *******************************************************************************/
 void st_destroy(STD sym_table) {
-	int i = -1;
+	if(!sym_table.st_size)
+		return;
 	free(sym_table.pstvr);
 	b_destroy(sym_table.plsBD);
 	st_setsize();
 }
 
 /*******************************************************************************
-Purpose:			
+Purpose:			Prints contents of symbol table to terminal
 Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2105/11/14, 18
+History/Versions:	Version 1.0, 2015/11/18
 Called Functions:	ex(), printf()
 Parameters:			STD
 Return Value:		int
-Algorithm:			
+Algorithm:			Calculates number of lines in program as well as the 
+					magnitude of the number of lines; prints line numbers of 
+					VID names along with the VID names
 *******************************************************************************/
 int st_print(STD sym_table) {
 	/* forward declaration */
 	int ex(int, int);
 	
 	/* maximum number of lines of code in the program */
-	int max_lines = sym_table.pstvr[sym_table.st_offset - 1].o_line;
+	int max_lines;
 	
 	/* initial magnitude of max. number of lines */
 	int max_line_magnitude = 0;
@@ -260,67 +271,77 @@ int st_print(STD sym_table) {
 	/* magnitude of current line */
 	int current_line_magnitude = 0;
 	
-	/*  */
-	int default_num_spaces = 11;
+	/* number of spaces between line number and lexeme name */
+	int default_num_spaces = DEFAULT_NUM_SPACES;
 	
-	/*  */
-	int i = -1;
-	
-	/*  */
-	int j = -1;
+	/* counters */
+	int i = -1, j = -1;
 
+	if(!sym_table.st_size)
+		return R_FAIL_1;
+
+	/* find the number of lines in the program */
+	max_lines = sym_table.pstvr[sym_table.st_offset - 1].o_line;
+
+	/* determine magnitude of number of lines of code */
 	while((max_lines /= 10) > 0) {
 		max_line_magnitude++;
 	}
-
-	if(sym_table.plsBD == NULL)	// or size == 0?
-		return R_FAIL_1;
 
 	printf("\nSymbol Table\n");
 	printf("____________\n\n");
 	printf("Line Number Variable Identifier\n");
 
-	
+	/* cycles through each element in symbol table */
 	while(++i < sym_table.st_offset)
 	{
+		/* determine the magnitude of the number of lines in the program */
 		while(sym_table.pstvr[i].o_line > (10 * ex(10, current_line_magnitude) - 1)) 
 		{
 			++current_line_magnitude;
 		}
-		while(++j < (max_line_magnitude - current_line_magnitude)) 
-		{
-			printf(" ");
-		}
+
+		/* print one space before the line number for each order of magnitude less than the maximum */
+		while(++j < (max_line_magnitude - current_line_magnitude)) { printf(" "); }
+		/* reset */
 		j = -1;
+
+		/* print the line number */
 		printf("%d", sym_table.pstvr[i].o_line);
+
+		/* print the corresponding number of spaces between the line number and VID name */
 		while(--default_num_spaces - max_line_magnitude >= 0) { printf(" "); }
+
+		/* print VID name */
 		printf("%s\n", sym_table.pstvr[i].plex);
-		default_num_spaces = 11;
+
+		/* reset */
+		default_num_spaces = DEFAULT_NUM_SPACES;
 	}
 	return sym_table.st_offset;
 }
 
 /*******************************************************************************
-Purpose:			
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2105/11/15
+Purpose:			Resets size of global symbol table to 0
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 2015/11/15
 Called Functions:	N/A
 Parameters:			N/A
 Return Value:		N/A
-Algorithm:			
+Algorithm:			N/A
 *******************************************************************************/
 static void st_setsize(void) {
 	sym_table.st_size = 0;
 }
 
 /*******************************************************************************
-Purpose:			
-Author:				
-History/Versions:	
-Called Functions:	
-Parameters:			
-Return Value:		
-Algorithm:			
+Purpose:			Increments offset of global symbol table
+Author:				Bryden Lacelle & Justin Farinaccio
+History/Versions:	Version 1.0, 205/11/15
+Called Functions:	N/A
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			N/A
 *******************************************************************************/
 static void st_incoffset(void) {
 	++sym_table.st_offset;
@@ -333,15 +354,18 @@ History/Versions:	Version 1.0, 2015/11/18
 Called Functions:	fopen(), fputc(), strlen(), st_get_type(), fprintf()
 Parameters:			STD
 Return Value:		int
-Algorithm:			
+Algorithm:			Creates file for writing, writes to file the size of the 
+					symbol table, as well as the characteristics of each VID
 *******************************************************************************/
 int st_store(STD sym_table) {
 	/* file pointer */
 	FILE *fp;
-	/* character variable for getting lexeme type */
+	/* character variable for getting VID type */
 	char c;
 	/* counter */
 	unsigned int i = 0;
+
+	if(!sym_table.st_size) { return R_FAIL_1; }
 	
 	printf("\nError: The Symbol Table is full - install failed.\n");
 	
@@ -355,47 +379,35 @@ int st_store(STD sym_table) {
 	fprintf(fp, "%d", sym_table.st_size);
 	
 	/* for each entry in symbol table... */
-	for(i = 0; i < sym_table.st_offset; i++) {
-		/* print to file the following: variable record status field (in hexadecimal format); length of lexeme; 
-		the lexeme; its line number */
-		fprintf(fp, " %X %d %s %d ", sym_table.pstvr[i].status_field, strlen(sym_table.pstvr[i].plex), sym_table.pstvr[i].plex, sym_table.pstvr[i].o_line);
+	for(i = 0; i < sym_table.st_offset; i++) { /* TRIGGERS WARNING Intentional sign mismatch */
+		/* print to file the following: variable record status field (in hexadecimal format); length of VID name; 
+		the VID name; its line number */
+		fprintf(fp, " %X %d %s %d ", sym_table.pstvr[i].status_field, 
+			strlen(sym_table.pstvr[i].plex), sym_table.pstvr[i].plex, sym_table.pstvr[i].o_line);
 		
-		/* finally, print to file the lexeme's initial value, depending on its type */
+		/* finally, print to file the VID's initial value, depending on its type */
 		c = st_get_type(sym_table, i);
 		if(c == 'I')		{ fprintf(fp, "%d", sym_table.pstvr[i].i_value.int_val); }
 		else if(c == 'F')	{ fprintf(fp, "%.2f", sym_table.pstvr[i].i_value.fpl_val); }
 		else if(c == 'S')	{ fprintf(fp, "%d", sym_table.pstvr[i].i_value.str_offset); }
 	}
 	printf("\nSymbol Table stored.\n");
-	st_setsize();
-	return sym_table.st_offset-1;
+	fclose(fp);
+
+	/* return number of records in ST */
+	return ++i;
 }
 
 /*******************************************************************************
-Purpose:			
-Author:				Justin Farinaccio
+Purpose:			Nothing; in other circumstances, would be used to sort lexemes
+Author:				Bryden Lacelle & Justin Farinaccio
 History/Versions:	Version 1.0, 2015/11/20
-Called Functions:	
+Called Functions:	N/A
 Parameters:			STD, char
 Return Value:		int
-Algorithm:			
+Algorithm:			N/A
 *******************************************************************************/
-int st_sort(STD sym_table, char s_order) {
-	/*unsigned int i = 0;
-
-	STD copy_pstvr;
-	STD 
-	
-	if(s_order == 'A') {
-		for(i = 0; i < sym_table.st_offset - 1; i++) {
-			qsort(sym_table.pstvr[i], sym_table.st_offset, sizeof(char*), strcmp(sym_table.pstvr[i].plex, sym_table.pstvr[i+1].plex));
-		}
-		qsort(sym_table.pstvr[i], sym_table.st_offset, sizeof(char*), strcmp(sym_table.pstvr[i].plex, sym_table.pstvr[0].plex));
-	}
-
-
-	return 1;*/
-
+int st_sort(STD sym_table, char s_order) { /* TRIGGERS WARNING Default return */
 	return 0;
 }
 
