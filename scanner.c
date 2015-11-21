@@ -33,7 +33,6 @@
 * The define does not have any effect in Borland compiler projects.
 */
 #define _CRT_SECURE_NO_WARNINGS
-
 #include <stdio.h>	/* standard input / output */
 #include <ctype.h>	/* conversion functions */
 #include <stdlib.h>	/* standard library functions and constants */
@@ -63,12 +62,13 @@ extern int scerrnum;		/* defined in platy_st.c - run-time error number */
 /* Local(file) global objects - variables */
 static Buffer *lex_buf;/*pointer to temporary lexeme buffer*/
 
-/* No other global variable declarations/definitiond are allowed */
+/* No other global variable declarations/definitions are allowed */
+#define PLATY_MAX	32767	/* SHRT_MAX for Platypus */
 
 /* scanner.c static(local) function  prototypes */ 
 static int char_class(char c);					/* character class function */
 static int get_next_state(int, char, int *);	/* state machine function */
-static int iskeyword(char * kw_lexeme);			/*keywords lookup functuion */
+static int iskeyword(char * kw_lexeme);			/* keywords lookup functuion */
 static long atool(char * lexeme);				/* converts octal string to decimal value */
 
 /*******************************************************************************
@@ -116,28 +116,30 @@ Token mlwpar_next_token(Buffer * sc_buf)
 	short lexend;		/* end offset of a lexeme in the input buffer */
 	int accept = NOAS;	/* type of state - initially not accepting */
 
-#define SEOF 255 /* Value of EOF returned by b_getc() */
-#define RUNERROR 254 /* Value of a runtime error returned by b_getc() */
-	char vAND[] = {'A', 'N', 'D', '.'}; /* Char array for comparing input to match .AND. Token */
-	char vOR[] = {'O', 'R', '.'}; /* Char array for comparing input to match .OR. Token */
-	char errComment[3] = {'!', ' ', '\0'}; /* Stores error attribute for invalid comment */
-	static short str_LTBL_mark = 0; /* Stores persistant value of the current offset for a new string to be stored in str_LTBL */
-	short increment = 0; /* Increase in str_LTBL increment from a new string */
-	int i = -1; /* Counting variable */
-	int switch_AND_OR = 0; /* Variable for handling switch statement for determining .AND. and .OR. Tokens */
-	typedef enum {FALSE, TRUE} BOOL; /* True/False enumeration */
-	BOOL validString = FALSE; /* Stores true if a valid string is found */
-	int copyString(Buffer*, Buffer*, int); /* Forward function declaration */
-	short getString(Buffer*, short); /* Forward function declaration */
-	Token errSymbol(char); /* Forward function declaration */
-	Token runError(); /* Forward function declaration */
-	Token errorString(Buffer*); /* Forward function declaration */
+#define SEOF 255		/* Value of EOF returned by b_getc() */
+#define SEOF_2 '\0'		/* Value of EOF defined by the language */
+#define RUNERROR 254	/* Value of a runtime error returned by b_getc() */
+	
+	char vAND[] = {'A', 'N', 'D', '.'};		/* Char array for comparing input to match .AND. Token */
+	char vOR[] = {'O', 'R', '.'};			/* Char array for comparing input to match .OR. Token */
+	char errComment[3] = {'!', ' ', '\0'};	/* Stores error attribute for invalid comment */
+	static short str_LTBL_mark = 0;			/* Stores persistant value of the current offset for a new string to be stored in str_LTBL */
+	short increment = 0;					/* Increase in str_LTBL increment from a new string */
+	int i = -1;								/* Counting variable */
+	int switch_AND_OR = 0;					/* Variable for handling switch statement for determining .AND. and .OR. Tokens */
+	typedef enum {FALSE, TRUE} BOOL;		/* True/False enumeration */
+	int validString = 0;					/* Stores true if a valid string is found */
+	int copyString(Buffer*, Buffer*, int);	/* Forward function declaration */
+	short getString(Buffer*, short);		/* Forward function declaration */
+	Token errSymbol(char);					/* Forward function declaration */
+	Token runError();						/* Forward function declaration */
+	Token errorString(Buffer*);				/* Forward function declaration */
 
 	while(1)
 	{ /* endless loop broken by token returns it will generate a warning */
 		c = b_getc(sc_buf);
 		/* checks for end of source file */
-		if (c == SEOF || c == '\0') { t.code = SEOF_T; return t; }
+		if (c == SEOF || c == SEOF_2) { t.code = SEOF_T; return t; }
 		if(c != SEOF)
 		{
 			/* checks for special characters */
@@ -216,7 +218,17 @@ Token mlwpar_next_token(Buffer * sc_buf)
 		{
 			if ((c = b_getc(sc_buf)) == '<')
 			{
-				while ((c = b_getc(sc_buf)) != '\n' && c != SEOF) {} /* Ignores characters until next line or SEOF is reached */
+				while ((c = b_getc(sc_buf)) != '\n' && c != SEOF && c != SEOF_2) {} /* Ignores characters until next line or SEOF is reached */
+				if (c == SEOF || c == SEOF_2)
+				{
+					t.code = ERR_T;
+					errComment[1] = c;
+					t.attribute.err_lex[0] = errComment[0]; /* Set to '"' */
+					t.attribute.err_lex[1] = errComment[1]; /* Set erroneous character */
+					t.attribute.err_lex[2] = errComment[2]; /* Set to \0 */
+					b_retract(sc_buf); /* Retract to before SEOF character was reached */
+					return t;
+				}
 				++line;
 			}
 			else 
@@ -236,8 +248,10 @@ Token mlwpar_next_token(Buffer * sc_buf)
 		{
 			b_setmark(sc_buf, b_getc_offset(sc_buf));
 			b_setmark(str_LTBL, str_LTBL_mark);
-			validString = (BOOL) copyString(sc_buf, str_LTBL, increment = getString(sc_buf, 0)); /* Copy string from buffer to str_LTBL */
+			validString = copyString(sc_buf, str_LTBL, increment = getString(sc_buf, 0)); /* Copy string from buffer to str_LTBL */
 			if (!validString) { t = errorString(sc_buf); return t; } /* Return error token if string is illegal */
+			if (validString == R_FAIL_1)
+				{ scerrnum = 100; t = runError(); return t; }
 			t.code = STR_T; 
 			t.attribute.str_offset = str_LTBL_mark; 
 			str_LTBL_mark += increment + 1; /* Set new mark for first empty space in str_LTBL buffer */
@@ -246,31 +260,31 @@ Token mlwpar_next_token(Buffer * sc_buf)
 				b_retract(sc_buf);
 			return t;
 		}
-
-		/* process runtime error */
-		if (c == RUNERROR) { scerrnum = 100; t = runError(); return t; }
-
 		/* implementation of finite state machine */
 		if (!isalpha(c) && !isdigit(c)) { t = errSymbol(c); return t; }
 		b_setmark(sc_buf, b_getc_offset(sc_buf)); /* Set mark on first character of lexeme */
 		while(1)  /* TRIGGERS WARNING: Intended infinite loop*/
 		{
 			state = get_next_state(state, c, &accept);
-			if(accept == NOAS) {
-				c = b_getc(sc_buf);
-				continue;
+			if(accept != NOAS) {
+				break;
 			}
-			break;
+			c = b_getc(sc_buf);
+			continue;
 		} 
 
 		lexstart = b_mark(sc_buf);
 		lexend = b_getc_offset(sc_buf);
-		lex_buf = b_create(b_capacity(sc_buf), 0, 'f'); /* Create temporary buffer for lexeme */
+		/* TRIGGERS WARNING Intentional assignment inside expression */
+		if(!(lex_buf = b_create(b_capacity(sc_buf), 0, 'f'))) /* Create temporary buffer for lexeme */
+			{ scerrnum = 100; t = runError(); return t; } /* process runtime error */
 		b_retract_to_mark(sc_buf); /* Retract to start of lexeme */
-		b_retract(sc_buf);
+		if (as_table[state] == ASWR)
+			b_retract(sc_buf);
 		while (b_getc_offset(sc_buf) < (state == ES ? lexend : lexend - 1))
 		{
-			b_addc(lex_buf, c = b_getc(sc_buf));
+			if(!(b_addc(lex_buf, c = b_getc(sc_buf))))
+				{ scerrnum = 100; t = runError(); return t; } /* process runtime error */
 		}
 		b_addc(lex_buf,'\0');
 		if (state == ES)
@@ -278,8 +292,8 @@ Token mlwpar_next_token(Buffer * sc_buf)
 		else
 			t = aa_table[state](b_setmark(lex_buf, 0));
 		b_destroy(lex_buf);
-		if (t.code == SVID_T)
-			b_getc(sc_buf);
+		if (t.attribute.vid_offset == R_FAIL_2) /* If symbol table is full */
+			exit(EXIT_SUCCESS);
 		return t;
 	}//end while(1)
 }
@@ -326,13 +340,13 @@ Algorithm:			Checks character against input symbols in transition table
 int char_class(char c)
 {
 	int val;	/* column of transition table that next character c belongs to */
-	if(isalpha(c))					{ val = 0; }
-	else if(c == '0')				{ val = 1; }
-	else if(c >= '1' && c <= '7')	{ val = 2; }
-	else if(c == '8' || c == '9')	{ val = 3; }
-	else if(c == '.')				{ val = 4; }
-	else if(c == '%')				{ val = 5; }
-	else							{ val = 6; }
+	if(isalpha(c))					{ val = COL_CHAR; }
+	else if(c == '0')				{ val = COL_ZERO; }
+	else if(c >= '1' && c <= '7')	{ val = COL_1TO7; }
+	else if(c == '8' || c == '9')	{ val = COL_8TO9; }
+	else if(c == '.')				{ val = COL_DCML; }
+	else if(c == '%')				{ val = COL_PERC; }
+	else							{ val = COL_OTHR; }
 	return val;
 }
 
@@ -367,7 +381,10 @@ Token aa_func02(char lexeme[]) {
 			isInt = 1;
 		t.attribute.vid_offset = st_install(sym_table, t.attribute.err_lex, (isInt ? 'I' : 'F'), line); /* Install lexeme to sym_table */
 		if (t.attribute.vid_offset == R_FAIL_1) /* Call st_store if sym_table is full */
-			{ st_store(sym_table); }
+		{
+			st_store(sym_table);
+			t.attribute.vid_offset = R_FAIL_2;
+		}
 	}
 	return t;
 }
@@ -396,6 +413,7 @@ Token aa_func03(char lexeme[]) {
 	if (t.attribute.vid_offset == R_FAIL_1) /* Called st_store if symbol table is full */
 	{
 		st_store(sym_table);
+		t.attribute.vid_offset = R_FAIL_2;
 	}
 	return t;
 }
@@ -443,7 +461,7 @@ Token aa_func05(char lexeme[]) {
 	Token t;										/* create token */
 	int intLexeme = atol(lexeme);					/* convert string to int */
 
-	if(intLexeme >= 0 && intLexeme <= SHRT_MAX) {
+	if(intLexeme >= 0 && intLexeme <= PLATY_MAX) {
 		t.code = INL_T;
 		t.attribute.int_value = intLexeme;
 		return t;
@@ -469,7 +487,7 @@ Token aa_func10(char lexeme[]) {
 	Token t;										/* create token */
 	long intLexeme = atool(lexeme);					/* convert octal string to long */
 
-	if(intLexeme >= 0 && intLexeme <= SHRT_MAX) {
+	if(intLexeme >= 0 && intLexeme <= PLATY_MAX) {
 		t.code = INL_T;
 		t.attribute.int_value = intLexeme;
 		return t;
@@ -554,7 +572,7 @@ short getString(Buffer* tsc_Buf, short counter)
 	char c = b_getc(tsc_Buf); /* Current char from buffer */
 	if (c == '\n' || c == 'CR') /* Increment line count on new line*/
 		++line;
-	if (c == '\0') { b_retract_to_mark(tsc_Buf); return -1; }
+	if (c == SEOF || c == SEOF_2) { b_retract_to_mark(tsc_Buf); return -1; }
 	if (c != '"') { return getString(tsc_Buf, ++counter); }
 	else if (counter == 0) { return counter; }
 	b_retract_to_mark(tsc_Buf);
@@ -576,7 +594,11 @@ int copyString(Buffer* sc_Buf, Buffer* str_LTBL, int counter)
 {
 	if (counter < 0) /* Invalid string length check */
 		return 0;
-	if (counter > 0 ) { b_addc(str_LTBL, b_getc(sc_Buf)); return copyString(sc_Buf, str_LTBL, --counter); }
+	if (counter > 0 ) 
+	{ 
+		if(!b_addc(str_LTBL, b_getc(sc_Buf)))
+			return R_FAIL_1;
+		return copyString(sc_Buf, str_LTBL, --counter); }
 	b_addc(str_LTBL, '\0'); /* When counter reaches 0 add string terminating character to str_LTBL*/
 	return 1;
 }
@@ -668,8 +690,8 @@ Algorithm:			Accepts a length which is either equal to the maximum length
 *******************************************************************************/
 Token err_VID_LEN_atrbt (unsigned short length, char* lexeme)
 {
-	short i = -1; /* incrementing variable */
-	Token t; /* Initialize a new Token */
+	short i = -1;	/* incrementing variable */
+	Token t;		/* Initialize a new Token */
 	/* Set attribute to err_lex */
 	if(strlen(lexeme) >= length)
 	{
@@ -688,5 +710,4 @@ Token err_VID_LEN_atrbt (unsigned short length, char* lexeme)
 		t.attribute.err_lex[strlen(lexeme)] = '\0';
 	}
 	return t;
-	
 }
