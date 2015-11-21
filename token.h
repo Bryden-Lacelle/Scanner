@@ -1,11 +1,11 @@
 /* Filename: token.h
- * Token declarations necessary for the scanner implementation 
- * CST8152, Assignment #2
- * Version: 1.15.02
- * Date: 29 September 2015
- * Provided by: Svillen Ranev
- * The file is complete and MUST NOT be modified. 
- */
+* Token declarations necessary for the scanner implementation 
+* CST8152, Assignment #2
+* Version: 1.15.02
+* Date: 29 September 2015
+* Provided by: Svillen Ranev
+* The file is complete and MUST NOT be modified. 
+*/
 #ifndef TOKEN_H_
 #define TOKEN_H_
 
@@ -14,13 +14,11 @@
 /*#pragma warning(error:4001)*//* to enforce C89 comments - to make // comments an error */
 
 /* Constants */
-
 #define VID_LEN 8   /* variable identifier length */
 #define ERR_LEN 20  /* error message length */
 #define INL_LEN 5   /* maximum number of digits for IL */
 
 /* Token codes */
-
 #define ERR_T     0  /* Error token */
 #define SEOF_T    1  /* Source end-of-file token */
 #define AVID_T    2  /* Arithmetic Variable identifier token */
@@ -43,30 +41,26 @@
 
 
 /* Operators token attributes */
-
 typedef enum ArithmeticOperators  {PLUS, MINUS, MULT, DIV} Arr_Op;
 typedef enum RelationalOperators  {EQ, NE, GT, LT} Rel_Op;
 typedef enum LogicalOperators     {AND,OR} Log_Op;
 
 
 /* Structure declaring the token and its attributes */
-
-typedef union TokenAttribute{
+typedef union TokenAttribute {
 	int get_int;      /* integer attributes accessor */
 	Arr_Op arr_op;    /* arithmetic operator attribute code */
 	Rel_Op rel_op;    /* relational operator attribute code */
 	Log_Op log_op;    /* logical operator attribute code */
 	int int_value;    /* integer literal attribute (value) */
 	int kwt_idx;      /* keyword index in the keyword table */	  
-	short str_offset;   /* sring literal offset from the beginning of */
-	                  /* the string literal buffer (str_LTBL->ca_head) */
+	short str_offset;   /* string literal offset from the beginning of the string literal buffer (str_LTBL->ca_head) */
 	float flt_value;    /* floating-point literal attribute (value) */
-	int vid_offset; /* variable identifier token attribute */
-    char err_lex[ERR_LEN+1]; /* error token attribite */
-  } TA;
+	int vid_offset;		/* variable identifier token attribute */
+	char err_lex[ERR_LEN+1]; /* error token attribite */
+} TA;
 
-typedef struct Token
-{
+typedef struct Token {
 	int code;                 /* token code */
 	TA attribute; /* token attribute */
 } Token;
