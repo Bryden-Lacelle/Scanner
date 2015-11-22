@@ -1,11 +1,11 @@
 Name: Bryden Lacelle
 Student Number: 040754048
 
-Written Functions: err_VID_LEN_atrbt(), errSymbol(), runError(), errorString(), copyString(), getString(), aa_func12()
-For this assignment I implemented the above functions for handling strings, error tokens, and run time errors. In addition 
-I implemented the cases for handling '=' and '.' characters as well as the handling of comments and strings. Code that 
-manipulates lex_buf in mlwpar_next_token() was written by me. I was responsible for debugging all functions and code 
-outlined above.
+Written Functions: st_install(), st_update_type(), st_update_value(), st_get_type(), st_destroy(), ex()
+For this assignment I implemented the above functions for the symbol table and one helping function for formating the
+number of spaces in the st_print function. In addition I made changes to Scanner to resolve issues based on the feedback
+from the previous assignment as well as making ajustments to the VID accepting functions in the Scanner.
+I was responsible for debugging all functions and code outlined above.
 
 
 
