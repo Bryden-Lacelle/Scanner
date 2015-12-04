@@ -19,6 +19,7 @@ double calculateHeight();
 double calculateB();
 double oldV = 0;
 double CalculateAcceleration();
+double timeDifferance;
 
 int main() 
 {
@@ -26,7 +27,9 @@ int main()
 	timeElapsed = (double) clock() / 1000;
 	while(1)
 	{
+		startTime = timeElapsed;
 		timeElapsed = (double) clock() / 1000;
+		timeDifferance = timeElapsed - startTime;
 		oldV = v;
 		acceleration = CalculateAcceleration();
 		v = calculateV1();
@@ -40,12 +43,12 @@ int main()
 
 double calculateV1()
 {
-	return (v + acceleration * (timeElapsed - startTime));
+	return (v + acceleration * (timeDifferance));
 }
 
 double calculateHeight()
 {
-	return (height1 - ((oldV + v) / 2) * timeElapsed);
+	return (height1 - ((oldV + v) / 2) * timeDifferance);
 }
 
 double calculateB()
