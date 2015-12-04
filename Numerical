@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
+
+#define G 9.8
+#define M 68
+#define A 8
+#define VMAX 46
+#define K 0.04
+#define HEIGHT 400
+double v = 0.0;
+double c = 10.0;
+double height1 = 400;
+double acceleration = 0;
+double timeElapsed;
+double startTime;
+double calculateV1();
+double calculateHeight();
+double calculateB();
+double CalculateAcceleration();
+
+int main() 
+{
+	startTime = (double) clock() / 1000;
+	timeElapsed = (double) clock() / 1000;
+	while(1)
+	{
+		timeElapsed = (double) clock() / 1000;
+		acceleration = CalculateAcceleration();
+		height1 = calculateHeight();
+		v = calculateV1();
+		printf("Acceleration %.2fm/s\nHeight %.32fm", acceleration, height1);
+		printf("\n%.3f", timeElapsed);
+		system("cls");
+	}
+	return 1;
+}
+
+double calculateV1()
+{
+	return (v + acceleration * (timeElapsed - startTime));
+}
+
+double calculateHeight()
+{
+	return (height1 * (v * calculateV1() / 2) * timeElapsed);
+}
+
+double calculateB()
+{
+	return K*(HEIGHT-height1);
+}
+
+double CalculateAcceleration()
+{
+	return (G - c/M*(v + A * ((v/VMAX) * (v/VMAX))) - calculateB());
+}
