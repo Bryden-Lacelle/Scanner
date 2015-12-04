@@ -17,6 +17,7 @@ double startTime;
 double calculateV1();
 double calculateHeight();
 double calculateB();
+double oldV = 0;
 double CalculateAcceleration();
 
 int main() 
@@ -26,9 +27,10 @@ int main()
 	while(1)
 	{
 		timeElapsed = (double) clock() / 1000;
+		oldV = v;
 		acceleration = CalculateAcceleration();
-		height1 = calculateHeight();
 		v = calculateV1();
+		height1 = calculateHeight();
 		printf("Acceleration %.2fm/s\nHeight %.32fm", acceleration, height1);
 		printf("\n%.3f", timeElapsed);
 		system("cls");
@@ -43,7 +45,7 @@ double calculateV1()
 
 double calculateHeight()
 {
-	return (height1 * (v * calculateV1() / 2) * timeElapsed);
+	return (height1 - ((oldV + v) / 2) * timeElapsed);
 }
 
 double calculateB()
