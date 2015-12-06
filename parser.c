@@ -384,6 +384,43 @@ void assignment_expression(void) {
 /*******************************************************************************
 Purpose:			
 Author:				Justin Farinaccio
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <selection statement> ->
+  IF (<conditional expression>)  THEN  <opt_statements> 
+  ELSE { <opt_statements> } ;
+
+FIRST(selection statement) = {KW_T(IF)} */
+
+void selection_statement(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <iteration statement> ->
+USING  (<assignment expression> , <conditional expression> , <assignment  expression> )
+REPEAT {
+     <opt_statements>
+	};
+
+FIRST(iteration statement) = { KW_T(USING)} */
+
+void iteration_statement(void);
+
+
+/*******************************************************************************
+Purpose:			
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/05
 Called Functions:	
 Parameters:			N/A
@@ -402,3 +439,408 @@ void input_statement(void) {
 	gen_incode("PLATY: Input statement parsed");
 }
 
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <variable list> ->
+	<variable identifier><variable list_p>
+
+FIRST(variable list) = {AVID_T, SVID_T} */
+void variable_list(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/*<variable list_p> ->
+	, <variable identifier><variable list_p>
+	| ε
+
+FIRST(variable list_p) = {, , ε} */
+void variable_list_p(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <output statement> ->
+	OUTPUT (<output list>);
+
+FIRST(output statement) = {KW_T(OUTPUT)} */
+
+void output_statement(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/*<output list> ->
+	<variable list>
+	| STR_T
+	| ε
+
+FIRST(output list) = {FIRST(variable list), STR_T, ε}*/
+void output_list(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <arithmetic expression> - >
+  <unary arithmetic expression>  
+| <additive arithmetic expression>
+
+FIRST(arithmetic expression) = {+, -, AVID_T, FPL_T, INL_T, ( } */
+void arithmetic_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <unary arithmetic expression> ->
+   -  <primary arithmetic expression> 
+| + <primary arithmetic expression>
+
+FIRST(unary arithmetic expression) = {+, -} */
+void unary_arithmetic_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <additive arithmetic expression> ->
+  <additive arithmetic expression> +  <multiplicative arithmetic expression>
+
+| <additive arithmetic expression>  -  <multiplicative arithmetic expression>
+| <multiplicative arithmetic expression>
+
+FIRST(additive arithmetic expression) = {AVID_T, FPL_T, INL_T, ( } */
+
+void additive_arithmetic_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <additive arithmetic expression_p> ->
+	+ <multiplicative arithmetic expression><additive arithmetic expression_p>
+	| - <multiplicative arithmetic expression><additive arithmetic expression_p>
+	| ε 
+FIRST(additive arithmetic expression_p) = {+, -, ε} */
+
+void additive_arithmetic_expression_p(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <multiplicative arithmetic expression> ->
+ <multiplicative arithmetic expression> * <primary arithmetic expression>
+| <multiplicative arithmetic expression> / <primary arithmetic expression>
+| <primary arithmetic expression>
+
+FIRST(multiplicative arithmetic expression) = {AVID_T, FPL_T, INL_T, ( } */
+
+void multiplicative_arithmetic_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <multiplicative arithmetic expression_p> ->
+	* <primary arithmetic expression><multiplicative arithmetic expression_p>
+	| / <primary arithmetic expression><multiplicative arithmetic expression_p>
+	| ε
+
+FIRST(multiplicative arithmetic expression_p) = {*, /, ε} */
+
+void multiplicative_arithmetic_expression_p(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/*<primary arithmetic expression> ->
+  AVID_T
+| FPL_T
+| INL_T
+| (<arithmetic expression>)
+
+FIRST(primary arithmetic expression) = {AVID_T, FPL_T, INL_T, ( }*/
+
+void primary_arithmetic_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/*<string expression> ->
+	<primary string expression><string expression_p>
+
+FIRST(string expression) = {SVID_T, STR_T}*/
+
+void string_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <string expression_p> ->
+	# <primary string expression><string expression_p>
+	| ε
+
+FIRST(string expression_p) = {#, ε} */
+
+void string_expression_p(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <primary string expression> ->
+  SVID_T
+| STR_T
+
+FIRST(primary string expression) = {SVID_T, STR_T}*/
+
+void primary_string_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <logical OR expression> ->
+	<logical AND expression><logical OR expression_p>
+
+FIRST(logical OR expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}*/
+
+void conditional_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/*<logical OR expression> ->
+	<logical AND expression><logical OR expression_p>
+
+FIRST(logical OR expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}*/
+
+void logical_OR_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <logical OR expression_p> ->
+	.OR. <logical AND expression><logical OR expression_p>
+	| ε
+
+FIRST(logical OR expression_p) = {.OR., ε}*/
+
+void logical_OR_expression_p(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <logical AND expression> ->
+	<relational expression><logical AND expression_p>
+
+FIRST(logical AND expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}*/
+void logical_AND_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/*<logical AND expression_p> ->
+	.AND. <relational expression><logical AND expression_p>
+	| ε
+
+FIRST(logical AND expression_p) = {.AND., ε}*/
+
+void logical_AND_expression_p(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <relational expression> ->
+	<primary a_relational expression><primary a_relational expression_p>
+	| <primary s_relational expression><primary s_relational expression_p>
+
+FIRST(relational expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}*/
+
+void relational_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/*   AVID_T
+	| FPL_T
+	| INL_T
+
+FIRST(primary a_relational expression) = {AVID_T, FPL_T, INL_T}*/
+
+void primary_a_relational_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <primary a_relational expression_p> ->
+	== <primary a_relational expression>
+	| <> <primary a_relational expression>
+	| > <primary a_relational expression>
+	| < <primary a_relational expression>
+
+FIRST(primary a_relational expression_p) = {=, <, >, <>}*/
+void primary_a_relational_expression_p(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <primary s_relational expression> ->
+<primary string expression>
+
+FIRST(primary s_relational expression) = {SVID_T, STR_T}*/
+
+void primary_s_relational_expression(void);
+
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/* <primary s_relational expression_p> ->
+	== <primary s_relational expression>
+	| <> <primary s_relational expression>
+	| > <primary s_relational expression>
+	| < <primary s_relational expression>
+
+FIRST(primary s_relational expression_p) = {=, <, >, <>}*/
+
+void primary_s_relational_expression_p(void);
