@@ -284,7 +284,6 @@ void statement(void) {
 		}
 	default:
 		syn_printe();
-		break;
 	}
 }
 
@@ -308,25 +307,30 @@ void statements_p(void) {
 	switch(lookahead.code)
 	{
 	case AVID_T:
+		match(AVID_T, lookahead.attribute.vid_offset);
+		break;
 	case SVID_T:
-		assignment_statement();	// how to deal with these??
-		selection_statement();
-		iteration_statement();
-		input_statement();
-		output_statement();
+		match(SVID_T, lookahead.attribute.vid_offset);
+		break;
 	case KW_T:
-		if(lookahead.attribute.get_int == IF
-			|| lookahead.attribute.get_int == USING
-			|| lookahead.attribute.get_int == INPUT
-			|| lookahead.attribute.get_int == OUTPUT) {
-			assignment_statement();
-			selection_statement();
-			iteration_statement();
-			input_statement();
-			output_statement();
+		if(lookahead.attribute.get_int == IF) {
+			match(KW_T, IF);
+			break;
+		}
+		else if(lookahead.attribute.get_int == USING) {
+			match(KW_T, USING);
+			break;
+		}
+		else if(lookahead.attribute.get_int == INPUT) {
+			match(KW_T, INPUT);
+			break;
+		}
+		else if(lookahead.attribute.get_int == OUTPUT) {
+			match(KW_T, OUTPUT);
+			break;
 		}
 	default:
-		gen_incode("PLATY: Statment parsed");
+		gen_incode("PLATY: Statement parsed");
 		break;
 	}
 }
@@ -390,33 +394,47 @@ Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-/* <selection statement> ->
+/*
+<selection statement> ->
   IF (<conditional expression>)  THEN  <opt_statements> 
   ELSE { <opt_statements> } ;
 
-FIRST(selection statement) = {KW_T(IF)} */
+FIRST(selection statement) = {KW_T(IF)}
+*/
 
-void selection_statement(void);
+void selection_statement(void) {
+	match(KW_T, IF); match(LPR_T, NO_ATTR); conditional_expression();
+	match(KW_T, RPR_T); match(KW_T, THEN); opt_statements();
+	match(KW_T, ELSE); match(LBR_T, NO_ATTR); opt_statements();
+	match(RBR_T, NO_ATTR); match(EOS_T, NO_ATTR);
+}
 
 /*******************************************************************************
 Purpose:			
-Author:				
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:	
 Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-/* <iteration statement> ->
+/*
+<iteration statement> ->
 USING  (<assignment expression> , <conditional expression> , <assignment  expression> )
 REPEAT {
      <opt_statements>
 	};
 
-FIRST(iteration statement) = { KW_T(USING)} */
+FIRST(iteration statement) = { KW_T(USING)}
+*/
 
-void iteration_statement(void);
-
+void iteration_statement(void) {
+	match(KW_T, USING); match(LPR_T, NO_ATTR); assignment_expression();
+	match(COM_T, NO_ATTR); conditional_expression(); match(COM_T, NO_ATTR);
+	assignment_expression(); match(RPR_T, NO_ATTR);
+	match(KW_T, REPEAT); match(LBR_T, NO_ATTR); opt_statements();
+	match(RBR_T, NO_ATTR); match(EOS_T, NO_ATTR);
+}
 
 /*******************************************************************************
 Purpose:			
@@ -439,21 +457,51 @@ void input_statement(void) {
 	gen_incode("PLATY: Input statement parsed");
 }
 
-
 /*******************************************************************************
 Purpose:			
-Author:				
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:	
 Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-/* <variable list> ->
+/*
+<variable list> ->
 	<variable identifier><variable list_p>
 
-FIRST(variable list) = {AVID_T, SVID_T} */
-void variable_list(void);
+FIRST(variable list) = {AVID_T, SVID_T}
+*/
+void variable_list(void) {
+	variable_identifier(); variable_list_p();
+}
+
+/*******************************************************************************
+Purpose:			
+Author:				Justin Farinaccio
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/*
+<variable identifier> ->
+	AVID_T | SVID_T
+
+FIRST(variable identifier) = {AVID_T, SVID_T}
+*/
+void variable_identifier(void) {
+	switch(lookahead.code)
+	{
+	case AVID_T:
+		match(AVID_T, lookahead.attribute.vid_offset);
+	case SVID_T:
+		match(SVID_T, lookahead.attribute.vid_offset);
+	default:
+		syn_printe();
+	}
+}
 
 /*******************************************************************************
 Purpose:			
@@ -464,12 +512,23 @@ Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-/*<variable list_p> ->
+/*
+<variable list_p> ->
 	, <variable identifier><variable list_p>
-	| ε
+	| e
 
-FIRST(variable list_p) = {, , ε} */
-void variable_list_p(void);
+FIRST(variable list_p) = {, , e}
+*/
+void variable_list_p(void) {
+	switch(lookahead.code)
+	{
+	case COM_T:
+		variable_identifier();
+	default:
+		gen_incode("PLATY: Variable list parsed");
+		break;
+	}
+}
 
 /*******************************************************************************
 Purpose:			
@@ -480,12 +539,16 @@ Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-/* <output statement> ->
+/*
+<output statement> ->
 	OUTPUT (<output list>);
 
-FIRST(output statement) = {KW_T(OUTPUT)} */
-
-void output_statement(void);
+FIRST(output statement) = {KW_T(OUTPUT)}
+*/
+void output_statement(void) {
+	match(KW_T, OUTPUT); match(LPR_T, NO_ATTR); output_list();
+	match(RPR_T, NO_ATTR); match(EOS_T, NO_ATTR);
+}
 
 /*******************************************************************************
 Purpose:			
@@ -499,9 +562,9 @@ Algorithm:
 /*<output list> ->
 	<variable list>
 	| STR_T
-	| ε
+	| e
 
-FIRST(output list) = {FIRST(variable list), STR_T, ε}*/
+FIRST(output list) = {FIRST(variable list), STR_T, e}*/
 void output_list(void);
 
 /*******************************************************************************
@@ -567,8 +630,8 @@ Algorithm:
 /* <additive arithmetic expression_p> ->
 	+ <multiplicative arithmetic expression><additive arithmetic expression_p>
 	| - <multiplicative arithmetic expression><additive arithmetic expression_p>
-	| ε 
-FIRST(additive arithmetic expression_p) = {+, -, ε} */
+	| e 
+FIRST(additive arithmetic expression_p) = {+, -, e} */
 
 void additive_arithmetic_expression_p(void);
 
@@ -602,9 +665,9 @@ Algorithm:
 /* <multiplicative arithmetic expression_p> ->
 	* <primary arithmetic expression><multiplicative arithmetic expression_p>
 	| / <primary arithmetic expression><multiplicative arithmetic expression_p>
-	| ε
+	| e
 
-FIRST(multiplicative arithmetic expression_p) = {*, /, ε} */
+FIRST(multiplicative arithmetic expression_p) = {*, /, e} */
 
 void multiplicative_arithmetic_expression_p(void);
 
@@ -654,9 +717,9 @@ Algorithm:
 *******************************************************************************/
 /* <string expression_p> ->
 	# <primary string expression><string expression_p>
-	| ε
+	| e
 
-FIRST(string expression_p) = {#, ε} */
+FIRST(string expression_p) = {#, e} */
 
 void string_expression_p(void);
 
@@ -720,9 +783,9 @@ Algorithm:
 *******************************************************************************/
 /* <logical OR expression_p> ->
 	.OR. <logical AND expression><logical OR expression_p>
-	| ε
+	| e
 
-FIRST(logical OR expression_p) = {.OR., ε}*/
+FIRST(logical OR expression_p) = {.OR., e}*/
 
 void logical_OR_expression_p(void);
 
@@ -752,9 +815,9 @@ Algorithm:
 *******************************************************************************/
 /*<logical AND expression_p> ->
 	.AND. <relational expression><logical AND expression_p>
-	| ε
+	| e
 
-FIRST(logical AND expression_p) = {.AND., ε}*/
+FIRST(logical AND expression_p) = {.AND., e}*/
 
 void logical_AND_expression_p(void);
 
