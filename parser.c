@@ -505,7 +505,7 @@ void variable_identifier(void) {
 
 /*******************************************************************************
 Purpose:			
-Author:				
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:	
 Parameters:			N/A
@@ -532,7 +532,7 @@ void variable_list_p(void) {
 
 /*******************************************************************************
 Purpose:			
-Author:				
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:	
 Parameters:			N/A
@@ -552,106 +552,139 @@ void output_statement(void) {
 
 /*******************************************************************************
 Purpose:			
-Author:				
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:	
 Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-/*<output list> ->
+/*
+<output list> ->
 	<variable list>
 	| STR_T
 	| e
 
-FIRST(output list) = {FIRST(variable list), STR_T, e}*/
-void output_list(void);
+FIRST(output list) = {, , STR_T, e}
+*/
+void output_list(void) {
+	switch(lookahead.code)
+	{
+	case COM_T:
+		variable_identifier();
+	case STR_T:
+		match(STR_T, lookahead.attribute.str_offset);
+	default:
+		gen_incode("PLATY: Output list parsed");
+		break;
+	}
+}
 
 /*******************************************************************************
 Purpose:			
-Author:				
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:	
 Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-/* <arithmetic expression> - >
-  <unary arithmetic expression>  
-| <additive arithmetic expression>
+/*
+<arithmetic expression> - >
+	  <unary arithmetic expression>  
+	| <additive arithmetic expression>
 
-FIRST(arithmetic expression) = {+, -, AVID_T, FPL_T, INL_T, ( } */
-void arithmetic_expression(void);
+FIRST(arithmetic expression) = {+, -, AVID_T, FPL_T, INL_T, ( }
+*/
+void arithmetic_expression(void) {
+	switch(lookahead.code)
+	{
+	case ART_OP_T:
+	case AVID_T:
+	case FPL_T:
+	case INL_T:
+	case LPR_T:
+		variable_identifier();
+	default:
+		syn_printe();
+	}
+}
 
 /*******************************************************************************
 Purpose:			
-Author:				
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:	
 Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-/* <unary arithmetic expression> ->
-   -  <primary arithmetic expression> 
-| + <primary arithmetic expression>
+/*
+<unary arithmetic expression> ->
+	  -  <primary arithmetic expression> 
+	| + <primary arithmetic expression>
 
-FIRST(unary arithmetic expression) = {+, -} */
-void unary_arithmetic_expression(void);
+FIRST(unary arithmetic expression) = {+, -}
+*/
+void unary_arithmetic_expression(void) {
+	switch(lookahead.code)
+	{
+	case ART_OP_T:
+		primary_arithmetic_expression();
+	default:
+		syn_printe();
+	}
+}
 
 /*******************************************************************************
 Purpose:			
-Author:				
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:	
 Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-/* <additive arithmetic expression> ->
-  <additive arithmetic expression> +  <multiplicative arithmetic expression>
+/*
+<additive arithmetic expression> ->
+	  <multiplicative arithmetic expression><additive arithmetic expression_p>
 
-| <additive arithmetic expression>  -  <multiplicative arithmetic expression>
-| <multiplicative arithmetic expression>
+FIRST(additive arithmetic expression) = {AVID_T, FPL_T, INL_T, ( }
+*/
 
-FIRST(additive arithmetic expression) = {AVID_T, FPL_T, INL_T, ( } */
-
-void additive_arithmetic_expression(void);
+void additive_arithmetic_expression(void) {
+	multiplicative_arithmetic_expression();
+	multiplicative_arithmetic_expression_p();
+}
 
 /*******************************************************************************
 Purpose:			
-Author:				
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:	
 Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-/* <additive arithmetic expression_p> ->
-	+ <multiplicative arithmetic expression><additive arithmetic expression_p>
+/*
+<additive arithmetic expression_p> ->
+	  + <multiplicative arithmetic expression><additive arithmetic expression_p>
 	| - <multiplicative arithmetic expression><additive arithmetic expression_p>
-	| e 
-FIRST(additive arithmetic expression_p) = {+, -, e} */
+	| e
 
-void additive_arithmetic_expression_p(void);
+FIRST(additive arithmetic expression_p) = {+, -, e}
+*/
 
-/*******************************************************************************
-Purpose:			
-Author:				
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:			
-*******************************************************************************/
-/* <multiplicative arithmetic expression> ->
- <multiplicative arithmetic expression> * <primary arithmetic expression>
-| <multiplicative arithmetic expression> / <primary arithmetic expression>
-| <primary arithmetic expression>
-
-FIRST(multiplicative arithmetic expression) = {AVID_T, FPL_T, INL_T, ( } */
-
-void multiplicative_arithmetic_expression(void);
+void additive_arithmetic_expression_p(void) {
+	switch(lookahead.code)
+	{
+	case ART_OP_T:
+		multiplicative_arithmetic_expression();
+	default:
+		gen_incode("PLATY: Additive arithmetic expression_p parsed");
+		break;
+	}
+}
 
 /*******************************************************************************
 Purpose:			
@@ -662,33 +695,86 @@ Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-/* <multiplicative arithmetic expression_p> ->
-	* <primary arithmetic expression><multiplicative arithmetic expression_p>
+/*
+<multiplicative arithmetic expression> ->
+	<primary arithmetic expression><multiplicative arithmetic expression_p>
+
+FIRST(multiplicative arithmetic expression) = {AVID_T, FPL_T, INL_T, ( }
+*/
+void multiplicative_arithmetic_expression(void) {
+	switch(lookahead.code)
+	{
+	case AVID_T:
+	case FPL_T:
+	case INL_T:
+	case LPR_T:
+		multiplicative_arithmetic_expression();
+	default:
+		syn_printe();
+	}
+}
+
+/*******************************************************************************
+Purpose:			
+Author:				Justin Farinaccio
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
+*******************************************************************************/
+/*
+<multiplicative arithmetic expression_p> ->
+	  * <primary arithmetic expression><multiplicative arithmetic expression_p>
 	| / <primary arithmetic expression><multiplicative arithmetic expression_p>
 	| e
 
-FIRST(multiplicative arithmetic expression_p) = {*, /, e} */
-
-void multiplicative_arithmetic_expression_p(void);
+FIRST(multiplicative arithmetic expression_p) = {*, /, e}
+*/
+void multiplicative_arithmetic_expression_p(void) {
+	switch(lookahead.code)
+	{
+	case ART_OP_T:
+		primary_arithmetic_expression();
+	default:
+		gen_incode("PLATY: Multiplicative arithmetic expression_p parsed");
+		break;
+	}
+}
 
 /*******************************************************************************
 Purpose:			
-Author:				
+Author:				Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:	
 Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-/*<primary arithmetic expression> ->
-  AVID_T
-| FPL_T
-| INL_T
-| (<arithmetic expression>)
+/*
+<primary arithmetic expression> ->
+	  AVID_T
+	| FPL_T
+	| INL_T
+	| (<arithmetic expression>)
 
-FIRST(primary arithmetic expression) = {AVID_T, FPL_T, INL_T, ( }*/
-
-void primary_arithmetic_expression(void);
+FIRST(primary arithmetic expression) = {AVID_T, FPL_T, INL_T, ( }
+*/
+void primary_arithmetic_expression(void) {
+	switch(lookahead.code)
+	{
+	case AVID_T:
+		match(AVID_T, lookahead.attribute.vid_offset);
+	case FPL_T:
+		match(FPL_T, lookahead.attribute.vid_offset);
+	case INL_T:
+		match(INL_T, lookahead.attribute.vid_offset);
+	case LPR_T:
+		arithmetic_expression();
+	default:
+		syn_printe();
+	}
+}
 
 /*******************************************************************************
 Purpose:			
