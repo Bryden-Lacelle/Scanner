@@ -55,6 +55,7 @@ void iteration_statement(void);
 void input_statement(void);
 void variable_list(void);
 void variable_list_p(void);
+void variable_identifier(void);
 void output_statement(void);
 void output_list(void);
 void arithmetic_expression(void);
