@@ -898,6 +898,14 @@ Called Functions:
 Parameters:			N/A
 Return Value:		N/A
 Algorithm:			
+/*******************************************************************************
+Purpose:			
+Author:				
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:	
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:			
 *******************************************************************************/
 /*<logical AND expression_p> ->
 	.AND. <relational expression><logical AND expression_p>
@@ -905,7 +913,21 @@ Algorithm:
 
 FIRST(logical AND expression_p) = {.AND., e}*/
 
-void logical_AND_expression_p(void);
+void logical_AND_expression_p(void)
+{
+	while (1)
+	{
+		switch (lookahead.attribute.log_op)
+		{
+		case AND:
+			relational_expression();
+			break;
+		default:
+			gen_incode("PLATY: Relational expression parsed\n");
+			return;
+		}
+	}
+}
 
 /*******************************************************************************
 Purpose:			
@@ -922,7 +944,13 @@ Algorithm:
 
 FIRST(relational expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}*/
 
-void relational_expression(void);
+void relational_expression(void)
+{
+	if (lookahead.code == AVID_T || lookahead.code == INL_T || lookahead.code == FPL_T)
+	{ primary_a_relational_expression(); primary_a_relational_expression_p(); }
+	if (lookahead.code == SVID_T || lookahead.code == STR_T)
+	{ primary_s_relational_expression(); primary_s_relational_expression_p(); }
+}
 
 /*******************************************************************************
 Purpose:			
@@ -939,7 +967,24 @@ Algorithm:
 
 FIRST(primary a_relational expression) = {AVID_T, FPL_T, INL_T}*/
 
-void primary_a_relational_expression(void);
+void primary_a_relational_expression(void)
+{
+	switch (lookahead.code)
+	{
+		case AVID_T: 
+			lookahead = mlwpar_next_token(sc_buf);
+			break;
+		case FPL_T: 
+			lookahead = mlwpar_next_token(sc_buf);
+			break;
+		case INL_T: 
+			lookahead = mlwpar_next_token(sc_buf);
+			break;
+		default:
+			/*Report error*/
+			break;
+	}
+}
 
 /*******************************************************************************
 Purpose:			
@@ -957,7 +1002,29 @@ Algorithm:
 	| < <primary a_relational expression>
 
 FIRST(primary a_relational expression_p) = {=, <, >, <>}*/
-void primary_a_relational_expression_p(void);
+void primary_a_relational_expression_p(void)
+{
+	switch (lookahead.attribute.rel_op)
+	{
+	case EQ:
+		primary_a_relational_expression();
+		break;
+	case GT:
+		primary_a_relational_expression();
+		break;
+	case LT:
+		primary_a_relational_expression();
+		break;
+	case NE:
+		primary_a_relational_expression();
+		break;
+	default:
+		/* Error */
+		break;
+	}
+}
+
+
 
 /*******************************************************************************
 Purpose:			
@@ -973,7 +1040,19 @@ Algorithm:
 
 FIRST(primary s_relational expression) = {SVID_T, STR_T}*/
 
-void primary_s_relational_expression(void);
+void primary_s_relational_expression(void)
+{
+	switch (lookahead.code)
+	{
+		case SVID_T:
+			lookahead = mlwpar_next_token(sc_buf);
+			break;
+		case STR_T:
+			lookahead = mlwpar_next_token(sc_buf);
+			break;
+		default:
+	}
+}
 
 /*******************************************************************************
 Purpose:			
@@ -992,4 +1071,23 @@ Algorithm:
 
 FIRST(primary s_relational expression_p) = {=, <, >, <>}*/
 
-void primary_s_relational_expression_p(void);
+void primary_s_relational_expression_p(void)
+{
+	switch (lookahead.attribute.rel_op)
+	{
+	case EQ:
+		primary_s_relational_expression();
+		break;
+	case GT:
+		primary_s_relational_expression();
+		break;
+	case LT:
+		primary_s_relational_expression();
+		break;
+	case NE:
+		primary_s_relational_expression();
+		break;
+	default:
+		break;
+	}
+}
