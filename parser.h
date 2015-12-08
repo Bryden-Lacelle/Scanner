@@ -44,7 +44,7 @@ extern Buffer *str_LTBL;
 
 /* grammar productions */
 void program(void);
-void opt_statments(void);
+void opt_statements(void);
 void statements(void);
 void statement(void);
 void statements_p(void);
