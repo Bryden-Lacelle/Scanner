@@ -59,9 +59,9 @@
 #include "parser.h"
 
 /* extern declaration */
-extern Token lookahead;
-extern Buffer *sc_buf;
-extern int synerrno;
+Token lookahead;
+Buffer *par_buf;
+int synerrno;
 
 /*******************************************************************************
 Purpose:			
@@ -73,8 +73,8 @@ Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
 void parser(Buffer *in_buf) {
-	sc_buf = in_buf;
-	lookahead = mlwpar_next_token(sc_buf);
+	par_buf = in_buf;
+	lookahead = mlwpar_next_token(par_buf);
 	program(); match(SEOF_T, NO_ATTR);
 	gen_incode("PLATY: Source file parsed");
 }
@@ -94,12 +94,12 @@ void match(int pr_token_code, int pr_token_attribute)
 	{
 		if (lookahead.code == SEOF_T)
 			return;
-		lookahead = mlwpar_next_token(sc_buf);
+		lookahead = mlwpar_next_token(par_buf);
 		while (lookahead.code == ERR_T)
 		{
 			++synerrno;
 			syn_printe();
-			lookahead = mlwpar_next_token(sc_buf);
+			lookahead = mlwpar_next_token(par_buf);
 		}
 	}
 	else 
@@ -968,11 +968,11 @@ FIRST(string expression_p) = {#, e} */
 
 void string_expression_p(void)
 {
-	lookahead = mlwpar_next_token(sc_buf);
+	lookahead = mlwpar_next_token(par_buf);
 	switch (lookahead.code)
 	{
 	case SCC_OP_T:
-		lookahead = mlwpar_next_token(sc_buf);
+		lookahead = mlwpar_next_token(par_buf);
 		primary_string_expression();
 		string_expression_p();
 		break;
@@ -1046,7 +1046,7 @@ FIRST(logical OR expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}*/
 
 void logical_OR_expression(void)
 {
-	logical_AND_expression;
+	logical_AND_expression();
 	logical_OR_expression_p();
 }
 
@@ -1067,11 +1067,11 @@ FIRST(logical OR expression_p) = {.OR., e}*/
 
 void logical_OR_expression_p(void)
 {
-	lookahead = mlwpar_next_token(sc_buf);
+	lookahead = mlwpar_next_token(par_buf);
 	switch (lookahead.attribute.log_op)
 	{
 	case OR:
-		lookahead = mlwpar_next_token(sc_buf);
+		lookahead = mlwpar_next_token(par_buf);
 		logical_AND_expression();
 		logical_OR_expression_p();
 		break;
@@ -1235,6 +1235,7 @@ void primary_a_relational_expression_p(void)
 		break;
 	}
 }
+
 /*******************************************************************************
 Purpose:
 Author:				Bryden Lacelle
