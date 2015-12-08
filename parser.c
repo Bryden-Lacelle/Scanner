@@ -777,139 +777,182 @@ void primary_arithmetic_expression(void) {
 }
 
 /*******************************************************************************
-Purpose:			
-Author:				
+Purpose:
+Author:
 History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
+Called Functions:
 Parameters:			N/A
 Return Value:		N/A
-Algorithm:			
+Algorithm:
 *******************************************************************************/
 /*<string expression> ->
-	<primary string expression><string expression_p>
+<primary string expression><string expression_p>
 
 FIRST(string expression) = {SVID_T, STR_T}*/
 
-void string_expression(void);
+void string_expression(void)
+{
+	primary_string_expression();
+	string_expression_p();
+}
 
 /*******************************************************************************
-Purpose:			
-Author:				
+Purpose:
+Author:
 History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
+Called Functions:
 Parameters:			N/A
 Return Value:		N/A
-Algorithm:			
+Algorithm:
 *******************************************************************************/
 /* <string expression_p> ->
-	# <primary string expression><string expression_p>
-	| e
+# <primary string expression><string expression_p>
+| e
 
 FIRST(string expression_p) = {#, e} */
 
-void string_expression_p(void);
+void string_expression_p(void)
+{
+	lookahead = mlwpar_next_token(sc_buf);
+	switch (lookahead.code)
+	{
+	case SCC_OP_T:
+		lookahead = mlwpar_next_token(sc_buf);
+		primary_string_expression();
+		string_expression_p();
+		break;
+	default:
+		/*Empty*/
+	}
+}
 
 /*******************************************************************************
-Purpose:			
-Author:				
+Purpose:
+Author:
 History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
+Called Functions:
 Parameters:			N/A
 Return Value:		N/A
-Algorithm:			
+Algorithm:
 *******************************************************************************/
 /* <primary string expression> ->
-  SVID_T
+SVID_T
 | STR_T
 
 FIRST(primary string expression) = {SVID_T, STR_T}*/
 
-void primary_string_expression(void);
+void primary_string_expression(void)
+{
+	switch (lookahead.code)
+	{
+	case SVID_T:
+		break;
+	case STR_T:
+		break;
+	default:
+		/*Error*/
+		break;
+	}
+}
 
 /*******************************************************************************
-Purpose:			
-Author:				
+Purpose:
+Author:
 History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
+Called Functions:
 Parameters:			N/A
 Return Value:		N/A
-Algorithm:			
+Algorithm:
 *******************************************************************************/
-/* <logical OR expression> ->
-	<logical AND expression><logical OR expression_p>
+/*<conditional expression> ->
+<logical OR expression>
 
-FIRST(logical OR expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}*/
+FIRST(conditional expression) = { AVID_T, FPL_T, INL_T, SVID_T, STR_T }*/
 
-void conditional_expression(void);
+void conditional_expression(void)
+{
+	logical_OR_expression();
+}
 
 /*******************************************************************************
-Purpose:			
-Author:				
+Purpose:
+Author:
 History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
+Called Functions:
 Parameters:			N/A
 Return Value:		N/A
-Algorithm:			
+Algorithm:
 *******************************************************************************/
 /*<logical OR expression> ->
-	<logical AND expression><logical OR expression_p>
+<logical AND expression><logical OR expression_p>
 
 FIRST(logical OR expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}*/
 
-void logical_OR_expression(void);
+void logical_OR_expression(void)
+{
+	logical_AND_expression;
+	logical_OR_expression_p();
+}
 
 /*******************************************************************************
-Purpose:			
-Author:				
+Purpose:
+Author:
 History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
+Called Functions:
 Parameters:			N/A
 Return Value:		N/A
-Algorithm:			
+Algorithm:
 *******************************************************************************/
 /* <logical OR expression_p> ->
-	.OR. <logical AND expression><logical OR expression_p>
-	| e
+.OR. <logical AND expression><logical OR expression_p>
+| e
 
 FIRST(logical OR expression_p) = {.OR., e}*/
 
-void logical_OR_expression_p(void);
+void logical_OR_expression_p(void)
+{
+	lookahead = mlwpar_next_token(sc_buf);
+	switch (lookahead.attribute.log_op)
+	{
+	case OR:
+		lookahead = mlwpar_next_token(sc_buf);
+		logical_AND_expression();
+		logical_OR_expression_p();
+	default:
+		break;
+	}
+}
 
 /*******************************************************************************
-Purpose:			
-Author:				
+Purpose:
+Author:
 History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
+Called Functions:
 Parameters:			N/A
 Return Value:		N/A
-Algorithm:			
+Algorithm:
 *******************************************************************************/
 /* <logical AND expression> ->
-	<relational expression><logical AND expression_p>
+<relational expression><logical AND expression_p>
 
 FIRST(logical AND expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}*/
-void logical_AND_expression(void);
+void logical_AND_expression(void)
+{
+
+}
 
 /*******************************************************************************
-Purpose:			
-Author:				
+Purpose:
+Author:
 History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
+Called Functions:
 Parameters:			N/A
 Return Value:		N/A
-Algorithm:			
-/*******************************************************************************
-Purpose:			
-Author:				
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:			
+Algorithm:
 *******************************************************************************/
 /*<logical AND expression_p> ->
-	.AND. <relational expression><logical AND expression_p>
-	| e
+.AND. <relational expression><logical AND expression_p>
+| e
 
 FIRST(logical AND expression_p) = {.AND., e}*/
 
@@ -920,6 +963,7 @@ void logical_AND_expression_p(void)
 		switch (lookahead.attribute.log_op)
 		{
 		case AND:
+			match(REL_OP_T, AND);
 			relational_expression();
 			break;
 		default:
@@ -930,40 +974,45 @@ void logical_AND_expression_p(void)
 }
 
 /*******************************************************************************
-Purpose:			
-Author:				
+Purpose:
+Author:
 History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
+Called Functions:
 Parameters:			N/A
 Return Value:		N/A
-Algorithm:			
+Algorithm:
 *******************************************************************************/
 /* <relational expression> ->
-	<primary a_relational expression><primary a_relational expression_p>
-	| <primary s_relational expression><primary s_relational expression_p>
+<primary a_relational expression><primary a_relational expression_p>
+| <primary s_relational expression><primary s_relational expression_p>
 
 FIRST(relational expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}*/
 
 void relational_expression(void)
 {
 	if (lookahead.code == AVID_T || lookahead.code == INL_T || lookahead.code == FPL_T)
-	{ primary_a_relational_expression(); primary_a_relational_expression_p(); }
+	{
+		primary_a_relational_expression(); primary_a_relational_expression_p();
+	}
 	if (lookahead.code == SVID_T || lookahead.code == STR_T)
-	{ primary_s_relational_expression(); primary_s_relational_expression_p(); }
+	{
+		primary_s_relational_expression(); primary_s_relational_expression_p();
+	}
 }
 
 /*******************************************************************************
-Purpose:			
-Author:				
+Purpose:
+Author:
 History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
+Called Functions:
 Parameters:			N/A
 Return Value:		N/A
-Algorithm:			
+Algorithm:
 *******************************************************************************/
-/*   AVID_T
-	| FPL_T
-	| INL_T
+/*  <primary a_relational expression> ->
+AVID_T
+| FPL_T
+| INL_T
 
 FIRST(primary a_relational expression) = {AVID_T, FPL_T, INL_T}*/
 
@@ -971,35 +1020,35 @@ void primary_a_relational_expression(void)
 {
 	switch (lookahead.code)
 	{
-		case AVID_T: 
-			lookahead = mlwpar_next_token(sc_buf);
-			break;
-		case FPL_T: 
-			lookahead = mlwpar_next_token(sc_buf);
-			break;
-		case INL_T: 
-			lookahead = mlwpar_next_token(sc_buf);
-			break;
-		default:
-			/*Report error*/
-			break;
+	case AVID_T:
+		match(AVID_T, NO_ATTR);
+		break;
+	case FPL_T:
+		match(FPL_T, NO_ATTR);
+		break;
+	case INL_T:
+		match(INL_T, NO_ATTR);
+		break;
+	default:
+		/*Report error*/
+		break;
 	}
 }
 
 /*******************************************************************************
-Purpose:			
-Author:				
+Purpose:
+Author:
 History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
+Called Functions:
 Parameters:			N/A
 Return Value:		N/A
-Algorithm:			
+Algorithm:
 *******************************************************************************/
 /* <primary a_relational expression_p> ->
-	== <primary a_relational expression>
-	| <> <primary a_relational expression>
-	| > <primary a_relational expression>
-	| < <primary a_relational expression>
+== <primary a_relational expression>
+| <> <primary a_relational expression>
+| > <primary a_relational expression>
+| < <primary a_relational expression>
 
 FIRST(primary a_relational expression_p) = {=, <, >, <>}*/
 void primary_a_relational_expression_p(void)
@@ -1007,87 +1056,23 @@ void primary_a_relational_expression_p(void)
 	switch (lookahead.attribute.rel_op)
 	{
 	case EQ:
+		match(REL_OP_T, EQ);
 		primary_a_relational_expression();
 		break;
 	case GT:
+		match(REL_OP_T, GT);
 		primary_a_relational_expression();
 		break;
 	case LT:
+		match(REL_OP_T, LT);
 		primary_a_relational_expression();
 		break;
 	case NE:
+		match(REL_OP_T, NE);
 		primary_a_relational_expression();
 		break;
 	default:
-		/* Error */
-		break;
-	}
-}
-
-
-
-/*******************************************************************************
-Purpose:			
-Author:				
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:			
-*******************************************************************************/
-/* <primary s_relational expression> ->
-<primary string expression>
-
-FIRST(primary s_relational expression) = {SVID_T, STR_T}*/
-
-void primary_s_relational_expression(void)
-{
-	switch (lookahead.code)
-	{
-		case SVID_T:
-			lookahead = mlwpar_next_token(sc_buf);
-			break;
-		case STR_T:
-			lookahead = mlwpar_next_token(sc_buf);
-			break;
-		default:
-	}
-}
-
-/*******************************************************************************
-Purpose:			
-Author:				
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:			
-*******************************************************************************/
-/* <primary s_relational expression_p> ->
-	== <primary s_relational expression>
-	| <> <primary s_relational expression>
-	| > <primary s_relational expression>
-	| < <primary s_relational expression>
-
-FIRST(primary s_relational expression_p) = {=, <, >, <>}*/
-
-void primary_s_relational_expression_p(void)
-{
-	switch (lookahead.attribute.rel_op)
-	{
-	case EQ:
-		primary_s_relational_expression();
-		break;
-	case GT:
-		primary_s_relational_expression();
-		break;
-	case LT:
-		primary_s_relational_expression();
-		break;
-	case NE:
-		primary_s_relational_expression();
-		break;
-	default:
+		/* Empty statement */
 		break;
 	}
 }
