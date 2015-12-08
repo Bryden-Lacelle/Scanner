@@ -1235,3 +1235,76 @@ void primary_a_relational_expression_p(void)
 		break;
 	}
 }
+/*******************************************************************************
+Purpose:
+Author:				Bryden Lacelle
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:
+*******************************************************************************/
+/*  <primary a_relational expression> ->
+AVID_T
+| FPL_T
+| INL_T
+
+FIRST(primary a_relational expression) = {AVID_T, FPL_T, INL_T}*/
+
+void primary_s_relational_expression(void)
+{
+	switch (lookahead.code)
+	{
+	case SVID_T:
+		match(SVID_T, NO_ATTR);
+		break;
+	case STR_T:
+		match(STR_T, NO_ATTR);
+		break;
+	default:
+		/*Report error*/
+		break;
+	}
+}
+
+/*******************************************************************************
+Purpose:
+Author:				Bryden Lacelle
+History/Versions:	Version 1.0, 2015/12/06
+Called Functions:
+Parameters:			N/A
+Return Value:		N/A
+Algorithm:
+*******************************************************************************/
+/* <primary a_relational expression_p> ->
+== <primary a_relational expression>
+| <> <primary a_relational expression>
+| > <primary a_relational expression>
+| < <primary a_relational expression>
+
+FIRST(primary a_relational expression_p) = {=, <, >, <>}*/
+void primary_s_relational_expression_p(void)
+{
+	switch (lookahead.attribute.rel_op)
+	{
+	case EQ:
+		match(REL_OP_T, EQ);
+		primary_s_relational_expression();
+		break;
+	case GT:
+		match(REL_OP_T, GT);
+		primary_s_relational_expression();
+		break;
+	case LT:
+		match(REL_OP_T, LT);
+		primary_s_relational_expression();
+		break;
+	case NE:
+		match(REL_OP_T, NE);
+		primary_s_relational_expression();
+		break;
+	default:
+		/* Empty statement */
+		break;
+	}
+}
