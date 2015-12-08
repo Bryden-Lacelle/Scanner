@@ -1,18 +1,18 @@
 /*****************************************************************************************************
 * File Name:		parser.h
-* Compiler:		MS Visual Studio 2012
+* Compiler:			MS Visual Studio 2012
 * Authors:			Bryden Lacelle & Justin Farinaccio
 * Course:			CST8152 - Compilers, Lab Section 011
 * Assignment:		Assignment 4: The Parser
-* Date:			December 11, 2015
+* Date:				December 11, 2015
 * Professor:		Svillen Ranev
 * Purpose:			Header file for parser.c; includes definitions for ___, as well as forward declartions for
-necessary functions.
+					necessary functions.
 * Function List:	parser()
-match()
-syn_eh()
-syn_printe()
-gen_incode()
+					match()
+					syn_eh()
+					syn_printe()
+					gen_incode()
 *****************************************************************************************************/
 
 #ifndef PARSER_H_
