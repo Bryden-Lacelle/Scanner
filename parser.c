@@ -81,15 +81,29 @@ void parser(Buffer *in_buf) {
 
 /*******************************************************************************
 Purpose:			
-Author:				
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:	
 Parameters:			int, int
 Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
-void match(int pr_token_code, int pr_token_attribute) {
-
+void match(int pr_token_code, int pr_token_attribute) 
+{
+	if (lookahead.code == pr_token_code && (pr_token_attribute == NO_ATTR || lookahead.attribute.int_value == pr_token_attribute))
+	{
+		if (lookahead.code == SEOF_T)
+			return;
+		lookahead = mlwpar_next_token(sc_buf);
+		while (lookahead.code == ERR_T)
+		{
+			++synerrno;
+			syn_printe();
+			lookahead = mlwpar_next_token(sc_buf);
+		}
+	}
+	else 
+		syn_eh(lookahead.code);
 }
 
 /*******************************************************************************
