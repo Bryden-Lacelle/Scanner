@@ -919,7 +919,7 @@ void primary_arithmetic_expression(void) {
 
 /*******************************************************************************
 Purpose:
-Author:
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:
 Parameters:			N/A
@@ -939,7 +939,7 @@ void string_expression(void)
 
 /*******************************************************************************
 Purpose:
-Author:
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:
 Parameters:			N/A
@@ -963,13 +963,14 @@ void string_expression_p(void)
 		string_expression_p();
 		break;
 	default:
-		/*Empty*/
+		gen_incode("PLATY: String expression parsed\n");
+		break;
 	}
 }
 
 /*******************************************************************************
 Purpose:
-Author:
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:
 Parameters:			N/A
@@ -998,7 +999,7 @@ void primary_string_expression(void)
 
 /*******************************************************************************
 Purpose:
-Author:
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:
 Parameters:			N/A
@@ -1017,7 +1018,7 @@ void conditional_expression(void)
 
 /*******************************************************************************
 Purpose:
-Author:
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:
 Parameters:			N/A
@@ -1037,7 +1038,7 @@ void logical_OR_expression(void)
 
 /*******************************************************************************
 Purpose:
-Author:
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:
 Parameters:			N/A
@@ -1059,14 +1060,16 @@ void logical_OR_expression_p(void)
 		lookahead = mlwpar_next_token(sc_buf);
 		logical_AND_expression();
 		logical_OR_expression_p();
+		break;
 	default:
+		gen_incode("PLATY: Logical OR expression parsed\n");
 		break;
 	}
 }
 
 /*******************************************************************************
 Purpose:
-Author:
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:
 Parameters:			N/A
@@ -1079,12 +1082,13 @@ Algorithm:
 FIRST(logical AND expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}*/
 void logical_AND_expression(void)
 {
-
+	relational_expression();
+	logical_AND_expression_p();
 }
 
 /*******************************************************************************
 Purpose:
-Author:
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:
 Parameters:			N/A
@@ -1116,7 +1120,7 @@ void logical_AND_expression_p(void)
 
 /*******************************************************************************
 Purpose:
-Author:
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:
 Parameters:			N/A
@@ -1143,7 +1147,7 @@ void relational_expression(void)
 
 /*******************************************************************************
 Purpose:
-Author:
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:
 Parameters:			N/A
@@ -1178,7 +1182,7 @@ void primary_a_relational_expression(void)
 
 /*******************************************************************************
 Purpose:
-Author:
+Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/06
 Called Functions:
 Parameters:			N/A
