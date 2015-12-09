@@ -112,33 +112,19 @@ Return Value:		N/A
 Algorithm:			
 *******************************************************************************/
 void syn_eh(int sync_token_code) {
-	Token t = lookahead;
-
-	syn_printe();
-	++synerrno;
-
-	lookahead = mlwpar_next_token(par_buf);
-
 	/* compares  */
-	if(t.code == sync_token_code) {
-		/* if looking for sync_token_code different from SEOF_T and end of source file 
-			has been reached, exit with an error */
-		if(sync_token_code > sizeof(sym_table)) {
-			exit(synerrno);
-		}
-
-		/* if matching token found and token is NOT SEOF */
-		if(sync_token_code != SEOF_T) {
-			++sync_token_code;
-			return;
-		}
+	while (lookahead.code != sync_token_code) {
+		syn_printe();
+		++synerrno;
+		lookahead = mlwpar_next_token(par_buf);
+		return;
 		/* if matching token found and token IS SEOF */
-		if(sync_token_code == SEOF_T) {
+		if(lookahead.code == SEOF_T) 
+		{
 			return;
 		}
 	}
 }
-
 /*******************************************************************************
 Purpose:			
 Author:				Svillen Ranev
