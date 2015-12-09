@@ -8,45 +8,45 @@
 * Professor:		Svillen Ranev
 * Purpose:			Implement a parser
 * Function List:	parser()
-match()
-syn_eh()
-syn_printe()
-gen_incode()
-program();
-opt_statments();
-statements();
-statement();
-statements_p();
-assignment_statement();
-assignment_expression();
-selection_statement();
-iteration_statement();
-input_statement();
-variable_list();
-variable_list_p();
-variable_identifier();
-output_statement();
-output_list();
-arithmetic_expression();
-unary_arithmetic_expression();
-additive_arithmetic_expression();
-additive_arithmetic_expression_p();
-multiplicative_arithmetic_expression();
-multiplicative_arithmetic_expression_p();
-primary_arithmetic_expression();
-string_expression();
-string_expression_p();
-primary_string_expression();
-conditional_expression();
-logical_OR_expression();
-logical_OR_expression_p();
-logical_AND_expression();
-logical_AND_expression_p();
-relational_expression();
-primary_a_relational_expression();
-primary_a_relational_expression_p();
-primary_s_relational_expression();
-primary_s_relational_expression_p();
+					match()
+					syn_eh()
+					syn_printe()
+					gen_incode()
+					program();
+					opt_statments();
+					statements();
+					statement();
+					statements_p();
+					assignment_statement();
+					assignment_expression();
+					selection_statement();
+					iteration_statement();
+					input_statement();
+					variable_list();
+					variable_list_p();
+					variable_identifier();
+					output_statement();
+					output_list();
+					arithmetic_expression();
+					unary_arithmetic_expression();
+					additive_arithmetic_expression();
+					additive_arithmetic_expression_p();
+					multiplicative_arithmetic_expression();
+					multiplicative_arithmetic_expression_p();
+					primary_arithmetic_expression();
+					string_expression();
+					string_expression_p();
+					primary_string_expression();
+					conditional_expression();
+					logical_OR_expression();
+					logical_OR_expression_p();
+					logical_AND_expression();
+					logical_AND_expression_p();
+					relational_expression();
+					primary_a_relational_expression();
+					primary_a_relational_expression_p();
+					primary_s_relational_expression();
+					primary_s_relational_expression_p();
 *******************************************************************************/
 
 /* project header files */
@@ -104,7 +104,7 @@ void match(int pr_token_code, int pr_token_attribute)
 
 /*******************************************************************************
 Purpose:
-Author:				Justin Farinaccio
+Author:				Bryden Lacelle & Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/07
 Called Functions:	sizeof(), exit()
 Parameters:			int
@@ -208,7 +208,7 @@ void syn_printe() {
 
 /*******************************************************************************
 Purpose:
-Author:				Justin Farinaccio
+Author:				Bryden Lacelle & Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/07
 Called Functions:	printf()
 Parameters:			char*
@@ -220,20 +220,13 @@ void gen_incode(char *c) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/05
-Called Functions:	match(), opt_statements(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <program>  ->
 PLATYPUS {<opt_statements>}
 
 FIRST(program) = {KW_T(PLATYPUS)}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void program(void) {
 	match(KW_T, PLATYPUS);
 	match(LBR_T, NO_ATTR);
@@ -243,20 +236,13 @@ void program(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/05
-Called Functions:	statements(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <opt_statements> ->
 <statements> | e
 
 FIRST(opt_statements) = {AVID_T, SVID_T, KW_T(IF), KW_T(USING), KW_T(INPUT), KW_T(OUTPUT), e}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void opt_statements(void) {
 	switch (lookahead.code)
 	{
@@ -278,20 +264,13 @@ void opt_statements(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/05
-Called Functions:	statement(), statements_p(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <statements> ->
 <statement><statements_p>
 
 FIRST(statements) = {AVID_T, SVID_T, KW_T(IF), KW_T(USING), KW_T(INPUT), KW_T(OUTPUT)}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void statements(void) {
 	statement();
 	statements_p();
@@ -299,17 +278,6 @@ void statements(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/05
-Called Functions:	assignment_statement(), selection_statement(),
-iteration_statement(), input_statement(), output_statement(),
-syn_printe(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <statement> ->
 <assignment statement>
 | <selection statement>
@@ -318,7 +286,9 @@ Algorithm:
 | <output statement>
 
 FIRST(statement) = {AVID_T, SVID_T, KW_T(IF), KW_T(USING), KW_T(INPUT), KW_T(OUTPUT)}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void statement(void) {
 	switch (lookahead.code)
 	{
@@ -350,26 +320,18 @@ void statement(void) {
 	default:
 		syn_printe();
 	}
-	//gen_incode("PLATY: Statement parsed");
+	gen_incode("PLATY: Statement parsed");
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/05
-Called Functions:	assignment_statement(), selection_statement(),
-iteration_statement(), input_statement(), output_statement()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <statements_p> ->
 <statement><statements_p>
 | e
 
 FIRST(statements_p) = {AVID_T, SVID_T, KW_T(IF), KW_T(USING), KW_T(INPUT), KW_T(OUTPUT), e}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void statements_p(void) {
 	switch (lookahead.code)
 	{
@@ -398,26 +360,19 @@ void statements_p(void) {
 			break;
 		}
 	default:
-		/*gen_incode("PLATY: Statements_p parsed");*/
 		break;
 	}
+	gen_incode("PLATY: Statement parsed");
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/05
-Called Functions:	assignment_expression(), match(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <assignment statement> ->
 <assignment expression>;
 
 FIRST(assignment statement) = {AVID_T, SVID_T}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void assignment_statement(void) {
 	assignment_expression();
 	match(EOS_T, NO_ATTR);
@@ -425,22 +380,14 @@ void assignment_statement(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/05
-Called Functions:	arithmetic_expression(), string_expression(), syn_printe(),
-gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <assignment expression> ->
 AVID = <arithmetic expression>
 | SVID = <string expression>
 
 FIRST(assignment expression) = {AVID_T, SVID_T}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void assignment_expression(void) {
 	switch (lookahead.code)
 	{
@@ -461,22 +408,14 @@ void assignment_expression(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	match(), conditional_expression(), opt_statements(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <selection statement> ->
 IF (<conditional expression>)  THEN  <opt_statements>
 ELSE { <opt_statements> } ;
 
 FIRST(selection statement) = {KW_T(IF)}
-*/
 
+Author:	Justin Farinaccio
+*******************************************************************************/
 void selection_statement(void) {
 	match(KW_T, IF); match(LPR_T, NO_ATTR); conditional_expression();
 	match(KW_T, RPR_T); match(KW_T, THEN); opt_statements();
@@ -486,16 +425,6 @@ void selection_statement(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	match(), assignment_expression(), conditional_expression(),
-assignment_expression(), opt_statements(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <iteration statement> ->
 USING  (<assignment expression> , <conditional expression> , <assignment  expression> )
 REPEAT {
@@ -503,8 +432,9 @@ REPEAT {
 };
 
 FIRST(iteration statement) = {KW_T(USING)}
-*/
 
+Author:	Justin Farinaccio
+*******************************************************************************/
 void iteration_statement(void) {
 	match(KW_T, USING); match(LPR_T, NO_ATTR); assignment_expression();
 	match(COM_T, NO_ATTR); conditional_expression(); match(COM_T, NO_ATTR);
@@ -515,20 +445,13 @@ void iteration_statement(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/05
-Called Functions:	match(), variable_list(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <input statement> ->
 INPUT (<variable list>);
 
 FIRST(input statement) = {KW_T(INPUT)}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void input_statement(void) {
 	match(KW_T, INPUT); match(LPR_T, NO_ATTR); variable_list();
 	match(RPR_T, NO_ATTR); match(EOS_T, NO_ATTR);
@@ -536,41 +459,26 @@ void input_statement(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	variable_identifier(), variable_list_p(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <variable list> ->
 <variable identifier><variable list_p>
 
 FIRST(variable list) = {AVID_T, SVID_T}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void variable_list(void) {
 	variable_identifier(); variable_list_p();
 	gen_incode("PLATY: Variable list parsed");
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	arithmetic_expression(), string_expression(), syn_printe(),
-gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <variable identifier> ->
 AVID_T | SVID_T
 
 FIRST(variable identifier) = {AVID_T, SVID_T}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void variable_identifier(void) {
 	switch (lookahead.code)
 	{
@@ -588,21 +496,14 @@ void variable_identifier(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	match(), variable_identifier(), variable_list_p(),
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <variable list_p> ->
 , <variable identifier><variable list_p>
 | e
 
 FIRST(variable list_p) = {, , e}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void variable_list_p(void) {
 	switch (lookahead.code)
 	{
@@ -617,20 +518,13 @@ void variable_list_p(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	match(), output_list(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <output statement> ->
 OUTPUT (<output list>);
 
 FIRST(output statement) = {KW_T(OUTPUT)}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void output_statement(void) {
 	match(KW_T, OUTPUT); match(LPR_T, NO_ATTR); output_list();
 	match(RPR_T, NO_ATTR); match(EOS_T, NO_ATTR);
@@ -638,22 +532,15 @@ void output_statement(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	match(), variable_list(), primary_string_expression(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <output list> ->
 <variable list>
 | STR_T
 | e
 
 FIRST(output list) = {, , STR_T, e}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void output_list(void) {
 	switch (lookahead.code)
 	{
@@ -673,23 +560,14 @@ void output_list(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	match(), unary_arithmetic_expression(),
-additive_arithmetic_expression(), variable_identifier(),
-syn_printe(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <arithmetic expression> - >
 <unary arithmetic expression>
 | <additive arithmetic expression>
 
 FIRST(arithmetic expression) = {+, -, AVID_T, FPL_T, INL_T, ( }
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void arithmetic_expression(void) {
 	switch (lookahead.code)
 	{
@@ -716,56 +594,39 @@ void arithmetic_expression(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	match(), primary_arithmetic_expression(), syn_printe(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <unary arithmetic expression> ->
-- <primary arithmetic expression>
-| + <primary arithmetic expression>
+	- <primary arithmetic expression>
+	| + <primary arithmetic expression>
 
 FIRST(unary arithmetic expression) = {+, -}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void unary_arithmetic_expression(void) {
 	switch (lookahead.attribute.arr_op)
 	{
 	case PLUS:
 		match(ART_OP_T, PLUS);
 		primary_arithmetic_expression();
-		gen_incode("PLATY: Unary arithmetic expression parsed");
 		break;
 	case MINUS:
 		match(ART_OP_T, MINUS);
 		primary_arithmetic_expression();
-		gen_incode("PLATY: Unary arithmetic expression parsed");
 		break;
 	default:
 		syn_printe();
 	}
+	gen_incode("PLATY: Unary arithmetic expression parsed");
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	multiplicative_arithmetic_expression(),
-multiplicative_arithmetic_expression_p(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <additive arithmetic expression> ->
-<multiplicative arithmetic expression><additive arithmetic expression_p>
+	<multiplicative arithmetic expression><additive arithmetic expression_p>
 
 FIRST(additive arithmetic expression) = {AVID_T, FPL_T, INL_T, ( }
-*/
 
+Author:	Justin Farinaccio
+*******************************************************************************/
 void additive_arithmetic_expression(void) {
 	multiplicative_arithmetic_expression();
 	multiplicative_arithmetic_expression_p();
@@ -773,24 +634,15 @@ void additive_arithmetic_expression(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	match(), multiplicative_arithmetic_expression(),
-multiplicative_arithmetic_expression_p()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <additive arithmetic expression_p> ->
-+ <multiplicative arithmetic expression><additive arithmetic expression_p>
-| - <multiplicative arithmetic expression><additive arithmetic expression_p>
-| e
+	+ <multiplicative arithmetic expression><additive arithmetic expression_p>
+	| - <multiplicative arithmetic expression><additive arithmetic expression_p>
+	| e
 
 FIRST(additive arithmetic expression_p) = {+, -, e}
-*/
 
+Author:	Justin Farinaccio
+*******************************************************************************/
 void additive_arithmetic_expression_p(void) {
 	switch (lookahead.attribute.arr_op)
 	{
@@ -810,21 +662,13 @@ void additive_arithmetic_expression_p(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	primary_arithmetic_expression(),
-multiplicative_arithmetic_expression_p(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <multiplicative arithmetic expression> ->
 <primary arithmetic expression><multiplicative arithmetic expression_p>
 
 FIRST(multiplicative arithmetic expression) = {AVID_T, FPL_T, INL_T, ( }
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void multiplicative_arithmetic_expression(void) {
 	primary_arithmetic_expression();
 	multiplicative_arithmetic_expression_p();
@@ -832,23 +676,15 @@ void multiplicative_arithmetic_expression(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	match(), primary_arithmetic_expression(),
-multiplicative_arithmetic_expression_p()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <multiplicative arithmetic expression_p> ->
 * <primary arithmetic expression><multiplicative arithmetic expression_p>
 | / <primary arithmetic expression><multiplicative arithmetic expression_p>
 | e
 
 FIRST(multiplicative arithmetic expression_p) = {*, /, e}
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void multiplicative_arithmetic_expression_p(void) {
 	switch (lookahead.attribute.arr_op)
 	{
@@ -868,15 +704,6 @@ void multiplicative_arithmetic_expression_p(void) {
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Justin Farinaccio
-History/Versions:	Version 1.0, 2015/12/06
-Called Functions:	match(), arithmetic_expression(), syn_printe(), gen_incode()
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <primary arithmetic expression> ->
 AVID_T
 | FPL_T
@@ -884,47 +711,38 @@ AVID_T
 | (<arithmetic expression>)
 
 FIRST(primary arithmetic expression) = {AVID_T, FPL_T, INL_T, ( }
-*/
+
+Author:	Justin Farinaccio
+*******************************************************************************/
 void primary_arithmetic_expression(void) {
 	switch (lookahead.code)
 	{
 	case AVID_T:
 		match(AVID_T, NO_ATTR);
-		gen_incode("PLATY: Primary arithmetic expression parsed");
 		break;
 	case FPL_T:
 		match(FPL_T, NO_ATTR);
-		gen_incode("PLATY: Primary arithmetic expression parsed");
 		break;
 	case INL_T:
 		match(INL_T, NO_ATTR);
-		gen_incode("PLATY: Primary arithmetic expression parsed");
 		break;
 	case LPR_T:
 		match(LPR_T, NO_ATTR);
-		gen_incode("PLATY: Primary arithmetic expression parsed");
 		break;
 	default:
 		syn_printe();
 	}
+	gen_incode("PLATY: Primary arithmetic expression parsed");
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <string expression> ->
 <primary string expression><string expression_p>
 
 FIRST(string expression) = {SVID_T, STR_T}
-*/
 
+Author:	Bryden Lacelle
+*******************************************************************************/
 void string_expression(void)
 {
 	primary_string_expression();
@@ -933,22 +751,14 @@ void string_expression(void)
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <string expression_p> ->
 # <primary string expression><string expression_p>
 | e
 
 FIRST(string expression_p) = {#, e}
-*/
 
+Author:	Bryden Lacelle
+*******************************************************************************/
 void string_expression_p(void)
 {
 	lookahead = mlwpar_next_token(par_buf);
@@ -965,22 +775,14 @@ void string_expression_p(void)
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <primary string expression> ->
 SVID_T
 | STR_T
 
 FIRST(primary string expression) = {SVID_T, STR_T}
-*/
 
+Author:	Bryden Lacelle
+*******************************************************************************/
 void primary_string_expression(void)
 {
 	switch (lookahead.code)
@@ -992,47 +794,31 @@ void primary_string_expression(void)
 		match(STR_T, NO_ATTR);
 		break;
 	default:
-		/*Error*/
 		break;
 	}
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <conditional expression> ->
 <logical OR expression>
 
 FIRST(conditional expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}
-*/
 
+Author:	Bryden Lacelle
+*******************************************************************************/
 void conditional_expression(void)
 {
 	logical_OR_expression();
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <logical OR expression> ->
 <logical AND expression><logical OR expression_p>
 
 FIRST(logical OR expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}
-*/
+
+Author:	Bryden Lacelle
+*******************************************************************************/
 void logical_OR_expression(void)
 {
 	logical_AND_expression();
@@ -1040,22 +826,14 @@ void logical_OR_expression(void)
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <logical OR expression_p> ->
 .OR. <logical AND expression><logical OR expression_p>
 | e
 
 FIRST(logical OR expression_p) = {.OR., e}
-*/
 
+Author:	Bryden Lacelle
+*******************************************************************************/
 void logical_OR_expression_p(void)
 {
 	lookahead = mlwpar_next_token(par_buf);
@@ -1073,20 +851,13 @@ void logical_OR_expression_p(void)
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <logical AND expression> ->
 <relational expression><logical AND expression_p>
 
 FIRST(logical AND expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}
-*/
+
+Author:	Bryden Lacelle
+*******************************************************************************/
 void logical_AND_expression(void)
 {
 	relational_expression();
@@ -1094,21 +865,14 @@ void logical_AND_expression(void)
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <logical AND expression_p> ->
 .AND. <relational expression><logical AND expression_p>
 | e
 
 FIRST(logical AND expression_p) = {.AND., e}
-*/
+
+Author:	Bryden Lacelle
+*******************************************************************************/
 void logical_AND_expression_p(void)
 {
 	while (1)
@@ -1127,21 +891,14 @@ void logical_AND_expression_p(void)
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <relational expression> ->
 <primary a_relational expression><primary a_relational expression_p>
 | <primary s_relational expression><primary s_relational expression_p>
 
 FIRST(relational expression) = {AVID_T, FPL_T, INL_T, SVID_T, STR_T}
-*/
+
+Author:	Bryden Lacelle
+*******************************************************************************/
 void relational_expression(void)
 {
 	if (lookahead.code == AVID_T || lookahead.code == INL_T || lookahead.code == FPL_T)
@@ -1155,23 +912,15 @@ void relational_expression(void)
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <primary a_relational expression> ->
 AVID_T
 | FPL_T
 | INL_T
 
 FIRST(primary a_relational expression) = {AVID_T, FPL_T, INL_T}
-*/
 
+Author:	Bryden Lacelle
+*******************************************************************************/
 void primary_a_relational_expression(void)
 {
 	switch (lookahead.code)
@@ -1192,15 +941,6 @@ void primary_a_relational_expression(void)
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
 <primary a_relational expression_p> ->
 == <primary a_relational expression>
 | <> <primary a_relational expression>
@@ -1208,7 +948,9 @@ Algorithm:
 | < <primary a_relational expression>
 
 FIRST(primary a_relational expression_p) = {=, <, >, <>}
-*/
+
+Author:	Bryden Lacelle
+*******************************************************************************/
 void primary_a_relational_expression_p(void)
 {
 	switch (lookahead.attribute.rel_op)
@@ -1236,22 +978,13 @@ void primary_a_relational_expression_p(void)
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
-<primary a_relational expression> ->
-AVID_T
-| FPL_T
-| INL_T
+<primary s_relational expression> ->
+	<primary string expression>
 
-FIRST(primary a_relational expression) = {AVID_T, FPL_T, INL_T}
-*/
+FIRST(primary s_relational expression) = {SVID_T, STR_T}
+
+Author:	Bryden Lacelle
+*******************************************************************************/
 void primary_s_relational_expression(void)
 {
 	switch (lookahead.code)
@@ -1269,23 +1002,16 @@ void primary_s_relational_expression(void)
 }
 
 /*******************************************************************************
-Purpose:
-Author:				Bryden Lacelle
-History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
-Parameters:			N/A
-Return Value:		N/A
-Algorithm:
-*******************************************************************************/
-/*
-<primary a_relational expression_p> ->
-== <primary a_relational expression>
-| <> <primary a_relational expression>
-| > <primary a_relational expression>
-| < <primary a_relational expression>
+<primary s_relational expression_p> ->
+	== <primary s_relational expression>
+	| <> <primary s_relational expression>
+	| > <primary s_relational expression>
+	| < <primary s_relational expression>
 
-FIRST(primary a_relational expression_p) = {=, <, >, <>}
-*/
+FIRST(primary s_relational expression_p) = {==, <, >, <>}
+
+Author:	Bryden Lacelle
+*******************************************************************************/
 void primary_s_relational_expression_p(void)
 {
 	switch (lookahead.attribute.rel_op)
