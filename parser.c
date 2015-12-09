@@ -99,7 +99,7 @@ void match(int pr_token_code, int pr_token_attribute)
 		}
 	}
 	else
-		syn_eh(lookahead.code);
+		syn_eh(EOS_T);
 }
 
 /*******************************************************************************
@@ -125,6 +125,7 @@ void syn_eh(int sync_token_code) {
 		}
 	}
 }
+
 /*******************************************************************************
 Purpose:			
 Author:				Svillen Ranev
@@ -235,7 +236,9 @@ Algorithm:
 FIRST(program) = {KW_T(PLATYPUS)}
 */
 void program(void) {
-	match(KW_T, PLATYPUS); match(LBR_T, NO_ATTR); opt_statements();
+	match(KW_T, PLATYPUS); 
+	match(LBR_T, NO_ATTR); 
+	opt_statements();
 	match(RBR_T, NO_ATTR);
 	gen_incode("PLATY: Program parsed");
 }
@@ -443,14 +446,17 @@ void assignment_expression(void) {
 	switch(lookahead.code)
 	{
 	case AVID_T:
+		match (AVID_T, NO_ATTR);
+		match (ASS_OP_T, NO_ATTR);
 		arithmetic_expression();
 		gen_incode("PLATY: Assignment expression (arithmetic) parsed");
 		break;
 	case SVID_T:
+		match (SVID_T, NO_ATTR);
+		match (ASS_OP_T, NO_ATTR);
 		string_expression();
 		break;
 	default:
-		syn_printe();
 		break;
 	}
 }
@@ -689,25 +695,17 @@ void arithmetic_expression(void) {
 	switch(lookahead.code)
 	{
 	case ART_OP_T:
-		switch(lookahead.attribute.arr_op)
-		{
-		case PLUS:
-			match(ART_OP_T, PLUS);
-			unary_arithmetic_expression();
-			break;
-		case MINUS:
-			match(ART_OP_T, MINUS);
-			unary_arithmetic_expression();
-			break;
-		default:
-			break;
-		}
+		unary_arithmetic_expression();
+		gen_incode("PLATY: Arithmetic expression parsed");
+		break;
 	case AVID_T:
 		additive_arithmetic_expression();
+		gen_incode("PLATY: Arithmetic expression parsed");
 		break;
 	case FPL_T:
 	case INL_T:
-		variable_identifier();
+		match(INL_T, NO_ATTR);
+		gen_incode("PLATY: Arithmetic expression parsed");
 		break;
 	case LPR_T:
 		additive_arithmetic_expression();
@@ -715,7 +713,6 @@ void arithmetic_expression(void) {
 		break;
 	default:
 		syn_printe();
-		gen_incode("PLATY: Arithmetic expression parsed");
 	}
 }
 
@@ -741,14 +738,15 @@ void unary_arithmetic_expression(void) {
 	case PLUS:
 		match(ART_OP_T, PLUS);
 		primary_arithmetic_expression();
+		gen_incode("PLATY: Unary arithmetic expression parsed");
 		break;
 	case MINUS:
 		match(ART_OP_T, MINUS);
 		primary_arithmetic_expression();
+		gen_incode("PLATY: Unary arithmetic expression parsed");
 		break;
 	default:
 		syn_printe();
-		gen_incode("PLATY: Unary arithmetic expression parsed");
 	}
 }
 
@@ -893,23 +891,22 @@ void primary_arithmetic_expression(void) {
 	{
 	case AVID_T:
 		match(AVID_T, NO_ATTR);
-		arithmetic_expression();
+		gen_incode("PLATY: Primary arithmetic expression parsed");
 		break;
 	case FPL_T:
 		match(FPL_T, NO_ATTR);
-		/* ?? */
+		gen_incode("PLATY: Primary arithmetic expression parsed");
 		break;
 	case INL_T:
 		match(INL_T, NO_ATTR);
-		/* ?? */
+		gen_incode("PLATY: Primary arithmetic expression parsed");
 		break;
 	case LPR_T:
 		match(LPR_T, NO_ATTR);
-		arithmetic_expression();
+		gen_incode("PLATY: Primary arithmetic expression parsed");
 		break;
 	default:
 		syn_printe();
-		gen_incode("PLATY: Primary arithmetic expression parsed");
 	}
 }
 
@@ -990,8 +987,10 @@ void primary_string_expression(void)
 	switch (lookahead.code)
 	{
 	case SVID_T:
+		match(SVID_T, NO_ATTR);
 		break;
 	case STR_T:
+		match(STR_T, NO_ATTR);
 		break;
 	default:
 		/*Error*/
