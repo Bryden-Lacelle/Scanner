@@ -263,6 +263,35 @@ void opt_statements(void) {
 	}
 }
 
+
+/*******************************************************************************
+<opt_statements> ->
+<statements> | e
+
+FIRST(opt_statements) = {AVID_T, SVID_T, KW_T(IF), KW_T(USING), KW_T(INPUT), KW_T(OUTPUT), e}
+
+Author:	Justin Farinaccio
+*******************************************************************************/
+void opt_statements(void) {
+	switch (lookahead.code)
+	{
+	case AVID_T:
+	case SVID_T:
+		statements();
+		break;
+	case KW_T:
+		if (lookahead.attribute.kwt_idx != PLATYPUS
+			&& lookahead.attribute.kwt_idx != ELSE
+			&& lookahead.attribute.kwt_idx != THEN
+			&& lookahead.attribute.kwt_idx != REPEAT) {
+			statements();
+			break;
+		}
+	default:
+		gen_incode("PLATY: Opt_statements parsed");
+	}
+}
+
 /*******************************************************************************
 <statements> ->
 <statement><statements_p>
@@ -274,7 +303,7 @@ Author:	Justin Farinaccio
 void statements(void) {
 	statement();
 	statements_p();
-	gen_incode("PLATY: Statements parsed");
+	//gen_incode("PLATY: Statements parsed");
 }
 
 /*******************************************************************************
@@ -297,19 +326,19 @@ void statement(void) {
 		assignment_statement();
 		break;
 	case KW_T:
-		if (lookahead.attribute.get_int == IF) {
+		if (lookahead.attribute.kwt_idx == IF) {
 			selection_statement();
 			break;
 		}
-		else if (lookahead.attribute.get_int == USING) {
+		else if (lookahead.attribute.kwt_idx == USING) {
 			iteration_statement();
 			break;
 		}
-		else if (lookahead.attribute.get_int == INPUT) {
+		else if (lookahead.attribute.kwt_idx == INPUT) {
 			input_statement();
 			break;
 		}
-		else if (lookahead.attribute.get_int == OUTPUT) {
+		else if (lookahead.attribute.kwt_idx == OUTPUT) {
 			output_statement();
 			break;
 		}
@@ -320,7 +349,6 @@ void statement(void) {
 	default:
 		syn_printe();
 	}
-	gen_incode("PLATY: Statement parsed");
 }
 
 /*******************************************************************************
@@ -340,19 +368,19 @@ void statements_p(void) {
 		assignment_statement();
 		break;
 	case KW_T:
-		if (lookahead.attribute.get_int == IF) {
+		if (lookahead.attribute.kwt_idx == IF) {
 			selection_statement();
 			break;
 		}
-		else if (lookahead.attribute.get_int == USING) {
+		else if (lookahead.attribute.kwt_idx == USING) {
 			iteration_statement();
 			break;
 		}
-		else if (lookahead.attribute.get_int == INPUT) {
+		else if (lookahead.attribute.kwt_idx == INPUT) {
 			input_statement();
 			break;
 		}
-		else if (lookahead.attribute.get_int == OUTPUT) {
+		else if (lookahead.attribute.kwt_idx == OUTPUT) {
 			output_statement();
 			break;
 		}
@@ -360,9 +388,9 @@ void statements_p(void) {
 			break;
 		}
 	default:
-		break;
+		return;
 	}
-	gen_incode("PLATY: Statement parsed");
+	statements_p();
 }
 
 /*******************************************************************************
@@ -453,8 +481,11 @@ FIRST(input statement) = {KW_T(INPUT)}
 Author:	Justin Farinaccio
 *******************************************************************************/
 void input_statement(void) {
-	match(KW_T, INPUT); match(LPR_T, NO_ATTR); variable_list();
-	match(RPR_T, NO_ATTR); match(EOS_T, NO_ATTR);
+	match(KW_T, INPUT); 
+	match(LPR_T, NO_ATTR); 
+	variable_list();
+	match(RPR_T, NO_ATTR);
+	match(EOS_T, NO_ATTR);
 	gen_incode("PLATY: INPUT statement parsed");
 }
 
@@ -467,7 +498,8 @@ FIRST(variable list) = {AVID_T, SVID_T}
 Author:	Justin Farinaccio
 *******************************************************************************/
 void variable_list(void) {
-	variable_identifier(); variable_list_p();
+	variable_identifier(); 
+	variable_list_p();
 	gen_incode("PLATY: Variable list parsed");
 }
 
@@ -483,16 +515,16 @@ void variable_identifier(void) {
 	switch (lookahead.code)
 	{
 	case AVID_T:
-		arithmetic_expression();
+		match(AVID_T, NO_ATTR);
 		break;
 	case SVID_T:
-		string_expression();
+		match(SVID_T, NO_ATTR);
 		break;
 	default:
 		syn_printe();
 		break;
 	}
-	gen_incode("PLATY: Variable identifier parsed");
+	//gen_incode("PLATY: Variable identifier parsed");
 }
 
 /*******************************************************************************
