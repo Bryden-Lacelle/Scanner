@@ -251,35 +251,6 @@ void opt_statements(void) {
 		statements();
 		break;
 	case KW_T:
-		if (lookahead.attribute.get_int != PLATYPUS
-			&& lookahead.attribute.get_int != ELSE
-			&& lookahead.attribute.get_int != THEN
-			&& lookahead.attribute.get_int != REPEAT) {
-			statements();
-			break;
-		}
-	default:
-		gen_incode("PLATY: Opt_statements parsed");
-	}
-}
-
-
-/*******************************************************************************
-<opt_statements> ->
-<statements> | e
-
-FIRST(opt_statements) = {AVID_T, SVID_T, KW_T(IF), KW_T(USING), KW_T(INPUT), KW_T(OUTPUT), e}
-
-Author:	Justin Farinaccio
-*******************************************************************************/
-void opt_statements(void) {
-	switch (lookahead.code)
-	{
-	case AVID_T:
-	case SVID_T:
-		statements();
-		break;
-	case KW_T:
 		if (lookahead.attribute.kwt_idx != PLATYPUS
 			&& lookahead.attribute.kwt_idx != ELSE
 			&& lookahead.attribute.kwt_idx != THEN
@@ -617,7 +588,9 @@ void arithmetic_expression(void) {
 		gen_incode("PLATY: Arithmetic expression parsed");
 		break;
 	case LPR_T:
+		//match(LPR_T, NO_ATTR);
 		additive_arithmetic_expression();
+		//match(RPR_T, NO_ATTR);
 		gen_incode("PLATY: Arithmetic expression (arithmetic) parsed");
 		break;
 	default:
@@ -661,7 +634,7 @@ Author:	Justin Farinaccio
 *******************************************************************************/
 void additive_arithmetic_expression(void) {
 	multiplicative_arithmetic_expression();
-	multiplicative_arithmetic_expression_p();
+	additive_arithmetic_expression_p();
 	gen_incode("PLATY: Additive arithmetic expression parsed");
 }
 
@@ -676,20 +649,24 @@ FIRST(additive arithmetic expression_p) = {+, -, e}
 Author:	Justin Farinaccio
 *******************************************************************************/
 void additive_arithmetic_expression_p(void) {
-	switch (lookahead.attribute.arr_op)
+	switch (lookahead.code)
 	{
-	case PLUS:
-		match(ART_OP_T, PLUS);
-		multiplicative_arithmetic_expression();
-		multiplicative_arithmetic_expression_p();
-		break;
-	case MINUS:
-		match(ART_OP_T, MINUS);
-		multiplicative_arithmetic_expression();
-		multiplicative_arithmetic_expression_p();
-		break;
-	default:
-		break;
+	case ART_OP_T:
+		switch (lookahead.attribute.arr_op)
+		{
+		case PLUS:
+			match(ART_OP_T, PLUS);
+			multiplicative_arithmetic_expression();
+			multiplicative_arithmetic_expression_p();
+			break;
+		case MINUS:
+			match(ART_OP_T, MINUS);
+			multiplicative_arithmetic_expression();
+			multiplicative_arithmetic_expression_p();
+			break;
+		default:
+			syn_printe();
+		}
 	}
 }
 
@@ -760,6 +737,8 @@ void primary_arithmetic_expression(void) {
 		break;
 	case LPR_T:
 		match(LPR_T, NO_ATTR);
+		additive_arithmetic_expression();
+		match(RPR_T, NO_ATTR);
 		break;
 	default:
 		syn_printe();
