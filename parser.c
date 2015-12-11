@@ -419,7 +419,7 @@ void selection_statement(void) {
 	match(KW_T, IF); 
 	match(LPR_T, NO_ATTR);
 	conditional_expression();
-	match(RPR_T, NO_ATTR); /* Fails here */
+	match(RPR_T, NO_ATTR);
 	match(KW_T, THEN); 
 	opt_statements();
 	match(KW_T, ELSE); 
