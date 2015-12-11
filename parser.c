@@ -118,8 +118,7 @@ void syn_eh(int sync_token_code) {
 		++synerrno;
 		lookahead = mlwpar_next_token(par_buf);
 		/* if matching token found and token IS SEOF */
-		if (lookahead.code == SEOF_T)
-		{
+		if (lookahead.code == SEOF_T) {
 			return;
 		}
 	}
@@ -274,7 +273,6 @@ Author:	Justin Farinaccio
 void statements(void) {
 	statement();
 	statements_p();
-	//gen_incode("PLATY: Statements parsed");
 }
 
 /*******************************************************************************
@@ -452,8 +450,8 @@ FIRST(input statement) = {KW_T(INPUT)}
 Author:	Justin Farinaccio
 *******************************************************************************/
 void input_statement(void) {
-	match(KW_T, INPUT); 
-	match(LPR_T, NO_ATTR); 
+	match(KW_T, INPUT);
+	match(LPR_T, NO_ATTR);
 	variable_list();
 	match(RPR_T, NO_ATTR);
 	match(EOS_T, NO_ATTR);
@@ -469,7 +467,7 @@ FIRST(variable list) = {AVID_T, SVID_T}
 Author:	Justin Farinaccio
 *******************************************************************************/
 void variable_list(void) {
-	variable_identifier(); 
+	variable_identifier();
 	variable_list_p();
 	gen_incode("PLATY: Variable list parsed");
 }
@@ -529,8 +527,11 @@ FIRST(output statement) = {KW_T(OUTPUT)}
 Author:	Justin Farinaccio
 *******************************************************************************/
 void output_statement(void) {
-	match(KW_T, OUTPUT); match(LPR_T, NO_ATTR); output_list();
-	match(RPR_T, NO_ATTR); match(EOS_T, NO_ATTR);
+	match(KW_T, OUTPUT);
+	match(LPR_T, NO_ATTR);
+	output_list();
+	match(RPR_T, NO_ATTR);
+	match(EOS_T, NO_ATTR);
 	gen_incode("PLATY: OUTPUT statement parsed");
 }
 
@@ -591,7 +592,7 @@ void arithmetic_expression(void) {
 		//match(LPR_T, NO_ATTR);
 		additive_arithmetic_expression();
 		//match(RPR_T, NO_ATTR);
-		gen_incode("PLATY: Arithmetic expression (arithmetic) parsed");
+		gen_incode("PLATY: Assignment expression (arithmetic) parsed");
 		break;
 	default:
 		syn_printe();
@@ -657,12 +658,12 @@ void additive_arithmetic_expression_p(void) {
 		case PLUS:
 			match(ART_OP_T, PLUS);
 			multiplicative_arithmetic_expression();
-			multiplicative_arithmetic_expression_p();
+			additive_arithmetic_expression_p();
 			break;
 		case MINUS:
 			match(ART_OP_T, MINUS);
 			multiplicative_arithmetic_expression();
-			multiplicative_arithmetic_expression_p();
+			additive_arithmetic_expression_p();
 			break;
 		default:
 			syn_printe();
@@ -737,7 +738,7 @@ void primary_arithmetic_expression(void) {
 		break;
 	case LPR_T:
 		match(LPR_T, NO_ATTR);
-		additive_arithmetic_expression();
+		arithmetic_expression();
 		match(RPR_T, NO_ATTR);
 		break;
 	default:
@@ -758,7 +759,7 @@ void string_expression(void)
 {
 	primary_string_expression();
 	string_expression_p();
-	gen_incode("PLATY: String expression parsed\n");
+	gen_incode("PLATY: String expression parsed");
 }
 
 /*******************************************************************************
