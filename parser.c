@@ -86,6 +86,10 @@ Algorithm:
 *******************************************************************************/
 void match(int pr_token_code, int pr_token_attribute)
 {
+	/*printf("lookahead: %d %d\n", lookahead.code, lookahead.attribute.get_int);
+	printf("parser: %d %d\n", pr_token_code, pr_token_attribute);*/
+	
+	
 	if (lookahead.code == pr_token_code && (pr_token_attribute == NO_ATTR || lookahead.attribute.int_value == pr_token_attribute))
 	{
 		if (lookahead.code == SEOF_T)
@@ -274,7 +278,6 @@ Author:	Justin Farinaccio
 void statements(void) {
 	statement();
 	statements_p();
-	//gen_incode("PLATY: Statements parsed");
 }
 
 /*******************************************************************************
@@ -416,16 +419,16 @@ FIRST(selection statement) = {KW_T(IF)}
 Author:	Justin Farinaccio
 *******************************************************************************/
 void selection_statement(void) {
-	match(KW_T, IF); 
+	match(KW_T, IF);
 	match(LPR_T, NO_ATTR);
 	conditional_expression();
 	match(RPR_T, NO_ATTR);
-	match(KW_T, THEN); 
+	match(KW_T, THEN);
 	opt_statements();
-	match(KW_T, ELSE); 
-	match(LBR_T, NO_ATTR); 
+	match(KW_T, ELSE);
+	match(LBR_T, NO_ATTR);
 	opt_statements();
-	match(RBR_T, NO_ATTR); 
+	match(RBR_T, NO_ATTR);
 	match(EOS_T, NO_ATTR);
 	gen_incode("PLATY: IF statement parsed");
 }
@@ -442,18 +445,18 @@ FIRST(iteration statement) = {KW_T(USING)}
 Author:	Justin Farinaccio
 *******************************************************************************/
 void iteration_statement(void) {
-	match(KW_T, USING); 
-	match(LPR_T, NO_ATTR); 
+	match(KW_T, USING);
+	match(LPR_T, NO_ATTR);
 	assignment_expression();
-	match(COM_T, NO_ATTR); 
-	conditional_expression(); 
 	match(COM_T, NO_ATTR);
-	assignment_expression(); 
+	conditional_expression();
+	match(COM_T, NO_ATTR);
+	assignment_expression();
 	match(RPR_T, NO_ATTR);
-	match(KW_T, REPEAT); 
-	match(LBR_T, NO_ATTR); 
+	match(KW_T, REPEAT);
+	match(LBR_T, NO_ATTR);
 	opt_statements();
-	match(RBR_T, NO_ATTR); 
+	match(RBR_T, NO_ATTR);
 	match(EOS_T, NO_ATTR);
 	gen_incode("PLATY: USING statement parsed");
 }
@@ -467,8 +470,8 @@ FIRST(input statement) = {KW_T(INPUT)}
 Author:	Justin Farinaccio
 *******************************************************************************/
 void input_statement(void) {
-	match(KW_T, INPUT); 
-	match(LPR_T, NO_ATTR); 
+	match(KW_T, INPUT);
+	match(LPR_T, NO_ATTR);
 	variable_list();
 	match(RPR_T, NO_ATTR);
 	match(EOS_T, NO_ATTR);
@@ -484,7 +487,7 @@ FIRST(variable list) = {AVID_T, SVID_T}
 Author:	Justin Farinaccio
 *******************************************************************************/
 void variable_list(void) {
-	variable_identifier(); 
+	variable_identifier();
 	variable_list_p();
 	gen_incode("PLATY: Variable list parsed");
 }
@@ -545,9 +548,9 @@ Author:	Justin Farinaccio
 *******************************************************************************/
 void output_statement(void) {
 	match(KW_T, OUTPUT);
-	match(LPR_T, NO_ATTR); 
+	match(LPR_T, NO_ATTR);
 	output_list();
-	match(RPR_T, NO_ATTR); 
+	match(RPR_T, NO_ATTR);
 	match(EOS_T, NO_ATTR);
 	gen_incode("PLATY: OUTPUT statement parsed");
 }
@@ -569,6 +572,10 @@ void output_list(void) {
 	case AVID_T:
 		variable_list();
 		break;
+	/*case COM_T:
+		match(COM_T, NO_ATTR);
+		variable_list();
+		break;*/
 	case STR_T:
 		match(STR_T, NO_ATTR);
 		primary_string_expression();
@@ -594,18 +601,24 @@ void arithmetic_expression(void) {
 	{
 	case ART_OP_T:
 		unary_arithmetic_expression();
+		/*gen_incode("PLATY: Arithmetic expression parsed");*/
 		break;
 	case AVID_T:
 		additive_arithmetic_expression();
+		/*gen_incode("PLATY: Arithmetic expression parsed");*/
 		break;
 	case FPL_T:
 		match(FPL_T, NO_ATTR);
 		break;
 	case INL_T:
 		match(INL_T, NO_ATTR);
+		/*gen_incode("PLATY: Arithmetic expression parsed");*/
 		break;
 	case LPR_T:
+		//match(LPR_T, NO_ATTR);
 		additive_arithmetic_expression();
+		//match(RPR_T, NO_ATTR);
+		/*gen_incode("PLATY: Assignment expression (arithmetic) parsed");*/
 		break;
 	default:
 		syn_printe();
@@ -650,7 +663,7 @@ Author:	Justin Farinaccio
 void additive_arithmetic_expression(void) {
 	multiplicative_arithmetic_expression();
 	additive_arithmetic_expression_p();
-	//gen_incode("PLATY: Additive arithmetic expression parsed");
+	/*gen_incode("PLATY: Additive arithmetic expression parsed");*/
 }
 
 /*******************************************************************************
@@ -698,7 +711,7 @@ Author:	Justin Farinaccio
 void multiplicative_arithmetic_expression(void) {
 	primary_arithmetic_expression();
 	multiplicative_arithmetic_expression_p();
-	//gen_incode("PLATY: Multiplicative arithmetic expression parsed");
+	/*gen_incode("PLATY: Multiplicative arithmetic expression parsed");*/
 }
 
 /*******************************************************************************
@@ -791,11 +804,10 @@ Author:	Bryden Lacelle
 *******************************************************************************/
 void string_expression_p(void)
 {
-	lookahead = mlwpar_next_token(par_buf);
 	switch (lookahead.code)
 	{
 	case SCC_OP_T:
-		lookahead = mlwpar_next_token(par_buf);
+		match(SCC_OP_T, NO_ATTR);
 		primary_string_expression();
 		string_expression_p();
 		break;
@@ -839,6 +851,7 @@ Author:	Bryden Lacelle
 void conditional_expression(void)
 {
 	logical_OR_expression();
+	gen_incode("PLATY: Conditional expression parsed");
 }
 
 /*******************************************************************************
@@ -853,6 +866,7 @@ void logical_OR_expression(void)
 {
 	logical_AND_expression();
 	logical_OR_expression_p();
+/*	gen_incode("PLATY: Logical OR expression parsed");*/
 }
 
 /*******************************************************************************
@@ -872,9 +886,10 @@ void logical_OR_expression_p(void)
 		match(LOG_OP_T, OR);
 		logical_AND_expression();
 		logical_OR_expression_p();
+		gen_incode("PLATY: Logical OR expression parsed");
 		break;
 	default:
-		gen_incode("PLATY: Logical OR expression parsed");
+		/*gen_incode("PLATY: Relational expression parsed");*/
 		break;
 	}
 }
@@ -891,6 +906,7 @@ void logical_AND_expression(void)
 {
 	relational_expression();
 	logical_AND_expression_p();
+/*	gen_incode("PLATY: Logical AND expression parsed");*/
 }
 
 /*******************************************************************************
@@ -910,6 +926,7 @@ void logical_AND_expression_p(void)
 		match(LOG_OP_T, AND);
 		relational_expression();
 		logical_AND_expression_p();
+		gen_incode("PLATY: Logical AND expression parsed");
 		break;
 	default:
 		gen_incode("PLATY: Relational expression parsed");
@@ -930,11 +947,13 @@ void relational_expression(void)
 {
 	if (lookahead.code == AVID_T || lookahead.code == INL_T || lookahead.code == FPL_T)
 	{
-		primary_a_relational_expression(); primary_a_relational_expression_p();
+		primary_a_relational_expression();
+		primary_a_relational_expression_p();
 	}
 	if (lookahead.code == SVID_T || lookahead.code == STR_T)
 	{
-		primary_s_relational_expression(); primary_s_relational_expression_p();
+		primary_s_relational_expression();
+		primary_s_relational_expression_p();
 	}
 }
 
@@ -965,6 +984,7 @@ void primary_a_relational_expression(void)
 		/*Report error*/
 		break;
 	}
+	gen_incode("PLATY: Primary a_relational expression parsed");
 }
 
 /*******************************************************************************
