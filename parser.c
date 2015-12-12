@@ -71,31 +71,34 @@ Algorithm:
 void parser(Buffer *in_buf) {
 	par_buf = in_buf;
 	lookahead = mlwpar_next_token(par_buf);
-	program(); match(SEOF_T, NO_ATTR);
+	program(); 
+	match(SEOF_T, NO_ATTR);
 	gen_incode("PLATY: Source file parsed");
 }
 
 /*******************************************************************************
-Purpose:
+Purpose:			Match input tokens in the parser to match Platypus Grammar
 Author:				Bryden Lacelle
 History/Versions:	Version 1.0, 2015/12/07
-Called Functions:
+Called Functions:	syn_eh()
 Parameters:			int, int
 Return Value:		N/A
-Algorithm:
+Algorithm:			Match current token and attribute to expected token and 
+					attribute. If they match advance one token unless the token is
+					SEOF. Otherwise check if the token is ERR_T if it is report an
+					error and advance the token once more
 *******************************************************************************/
 void match(int pr_token_code, int pr_token_attribute)
 {
 	/*printf("lookahead: %d %d\n", lookahead.code, lookahead.attribute.get_int);
 	printf("parser: %d %d\n", pr_token_code, pr_token_attribute);*/
-	
-	
+
 	if (lookahead.code == pr_token_code && (pr_token_attribute == NO_ATTR || lookahead.attribute.int_value == pr_token_attribute))
 	{
 		if (lookahead.code == SEOF_T)
 			return;
 		lookahead = mlwpar_next_token(par_buf);
-		while (lookahead.code == ERR_T)
+		if (lookahead.code == ERR_T)
 		{
 			++synerrno;
 			syn_printe();
@@ -103,7 +106,9 @@ void match(int pr_token_code, int pr_token_attribute)
 		}
 	}
 	else
-		syn_eh(EOS_T);
+	{
+		syn_eh(pr_token_code);
+	}
 }
 
 /*******************************************************************************
@@ -113,20 +118,19 @@ History/Versions:	Version 1.0, 2015/12/07
 Called Functions:	sizeof(), exit()
 Parameters:			int
 Return Value:		N/A
-Algorithm:
+Algorithm:			Report an error and advance token until a safe or expected token
+					is found and advance the lookahead one more time
 *******************************************************************************/
 void syn_eh(int sync_token_code) {
-	/* compares  */
-	while (lookahead.code != sync_token_code) {
-		syn_printe();
-		++synerrno;
+	syn_printe();
+	++synerrno;
+	while (lookahead.code != sync_token_code && lookahead.code != EOS_T)
+	{
 		lookahead = mlwpar_next_token(par_buf);
-		/* if matching token found and token IS SEOF */
-		if (lookahead.code == SEOF_T)
-		{
-			return;
-		}
+		if (lookahead.code == SEOF_T && sync_token_code != SEOF_T) /* Exit if SEOF_T is encountered unexpectedly */
+			exit(synerrno);
 	}
+	lookahead = mlwpar_next_token(par_buf);
 }
 
 /*******************************************************************************
@@ -211,13 +215,13 @@ void syn_printe() {
 }/* end syn_printe()*/
 
 /*******************************************************************************
-Purpose:
+Purpose:			Print parsing details
 Author:				Bryden Lacelle & Justin Farinaccio
 History/Versions:	Version 1.0, 2015/12/07
 Called Functions:	printf()
 Parameters:			char*
 Return Value:		N/A
-Algorithm:
+Algorithm:			N/A
 *******************************************************************************/
 void gen_incode(char *c) {
 	printf("%s\n", c);
@@ -403,9 +407,10 @@ void assignment_expression(void) {
 		match(SVID_T, NO_ATTR);
 		match(ASS_OP_T, NO_ATTR);
 		string_expression();
+		gen_incode("PLATY: Assignment expression (string) parsed");
 		break;
 	default:
-		break;
+		syn_printe();
 	}
 }
 
@@ -572,13 +577,8 @@ void output_list(void) {
 	case AVID_T:
 		variable_list();
 		break;
-	/*case COM_T:
-		match(COM_T, NO_ATTR);
-		variable_list();
-		break;*/
 	case STR_T:
 		match(STR_T, NO_ATTR);
-		primary_string_expression();
 		gen_incode("PLATY: Output list (string literal) parsed");
 		break;
 	default:
@@ -601,24 +601,19 @@ void arithmetic_expression(void) {
 	{
 	case ART_OP_T:
 		unary_arithmetic_expression();
-		/*gen_incode("PLATY: Arithmetic expression parsed");*/
+		gen_incode("PLATY: Unary arithmetic expression parsed");
 		break;
 	case AVID_T:
 		additive_arithmetic_expression();
-		/*gen_incode("PLATY: Arithmetic expression parsed");*/
 		break;
 	case FPL_T:
 		match(FPL_T, NO_ATTR);
 		break;
 	case INL_T:
 		match(INL_T, NO_ATTR);
-		/*gen_incode("PLATY: Arithmetic expression parsed");*/
 		break;
 	case LPR_T:
-		//match(LPR_T, NO_ATTR);
 		additive_arithmetic_expression();
-		//match(RPR_T, NO_ATTR);
-		/*gen_incode("PLATY: Assignment expression (arithmetic) parsed");*/
 		break;
 	default:
 		syn_printe();
@@ -649,7 +644,6 @@ void unary_arithmetic_expression(void) {
 	default:
 		syn_printe();
 	}
-	gen_incode("PLATY: Unary arithmetic expression parsed");
 }
 
 /*******************************************************************************
@@ -663,7 +657,6 @@ Author:	Justin Farinaccio
 void additive_arithmetic_expression(void) {
 	multiplicative_arithmetic_expression();
 	additive_arithmetic_expression_p();
-	/*gen_incode("PLATY: Additive arithmetic expression parsed");*/
 }
 
 /*******************************************************************************
@@ -711,7 +704,6 @@ Author:	Justin Farinaccio
 void multiplicative_arithmetic_expression(void) {
 	primary_arithmetic_expression();
 	multiplicative_arithmetic_expression_p();
-	/*gen_incode("PLATY: Multiplicative arithmetic expression parsed");*/
 }
 
 /*******************************************************************************
@@ -790,7 +782,7 @@ void string_expression(void)
 {
 	primary_string_expression();
 	string_expression_p();
-	gen_incode("PLATY: String expression parsed\n");
+	gen_incode("PLATY: String expression parsed");
 }
 
 /*******************************************************************************
@@ -838,6 +830,7 @@ void primary_string_expression(void)
 	default:
 		break;
 	}
+	gen_incode("PLATY: Primary string expression parsed");
 }
 
 /*******************************************************************************
@@ -866,7 +859,6 @@ void logical_OR_expression(void)
 {
 	logical_AND_expression();
 	logical_OR_expression_p();
-/*	gen_incode("PLATY: Logical OR expression parsed");*/
 }
 
 /*******************************************************************************
@@ -889,7 +881,6 @@ void logical_OR_expression_p(void)
 		gen_incode("PLATY: Logical OR expression parsed");
 		break;
 	default:
-		/*gen_incode("PLATY: Relational expression parsed");*/
 		break;
 	}
 }
@@ -906,7 +897,6 @@ void logical_AND_expression(void)
 {
 	relational_expression();
 	logical_AND_expression_p();
-/*	gen_incode("PLATY: Logical AND expression parsed");*/
 }
 
 /*******************************************************************************
@@ -929,7 +919,6 @@ void logical_AND_expression_p(void)
 		gen_incode("PLATY: Logical AND expression parsed");
 		break;
 	default:
-		gen_incode("PLATY: Relational expression parsed");
 		return;
 	}
 }
@@ -950,11 +939,14 @@ void relational_expression(void)
 		primary_a_relational_expression();
 		primary_a_relational_expression_p();
 	}
-	if (lookahead.code == SVID_T || lookahead.code == STR_T)
+	else if (lookahead.code == SVID_T || lookahead.code == STR_T)
 	{
 		primary_s_relational_expression();
 		primary_s_relational_expression_p();
 	}
+	else 
+		syn_printe();
+	gen_incode("PLATY: Relational expression parsed");
 }
 
 /*******************************************************************************
@@ -981,8 +973,7 @@ void primary_a_relational_expression(void)
 		match(INL_T, NO_ATTR);
 		break;
 	default:
-		/*Report error*/
-		break;
+		syn_printe();
 	}
 	gen_incode("PLATY: Primary a_relational expression parsed");
 }
@@ -1034,18 +1025,8 @@ Author:	Bryden Lacelle
 *******************************************************************************/
 void primary_s_relational_expression(void)
 {
-	switch (lookahead.code)
-	{
-	case SVID_T:
-		match(SVID_T, NO_ATTR);
-		break;
-	case STR_T:
-		match(STR_T, NO_ATTR);
-		break;
-	default:
-		/*Report error*/
-		break;
-	}
+	primary_string_expression();
+	gen_incode("PLATY: Primary s_relational expression parsed");
 }
 
 /*******************************************************************************
