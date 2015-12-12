@@ -7,7 +7,7 @@
 * Date:				October 27, 2015
 * Professor:		Svillen Ranev
 * Purpose:			Building a lexical analyzer (scanner) for the Platypus language
-* Funciton List:	scanner_init();
+* Function List:	scanner_init();
 					mlwpar_next_token();
 					get_next_state();
 					char_class();
@@ -107,7 +107,7 @@ Algorithm:			Checks single-lexeme tokens for valid recognition, setting
 					implements finite state machine; 
 					sets up, processes, and destroys buffer
 *******************************************************************************/
-Token mlwpar_next_token(Buffer * sc_buf)
+Token mlwpar_next_token(Buffer *sc_buf)
 {
 	Token t;			/* token to return after recognition */
 	unsigned char c;	/* input symbol */
@@ -261,7 +261,10 @@ Token mlwpar_next_token(Buffer * sc_buf)
 			return t;
 		}
 		/* implementation of finite state machine */
-		if (!isalpha(c) && !isdigit(c)) { t = errSymbol(c); return t; }
+		if (!isalpha(c) && !isdigit(c)) 
+		{ 
+			t = errSymbol(c); return t; 
+		}
 		b_setmark(sc_buf, b_getc_offset(sc_buf)); /* Set mark on first character of lexeme */
 		while(1)  /* TRIGGERS WARNING: Intended infinite loop*/
 		{
@@ -281,7 +284,7 @@ Token mlwpar_next_token(Buffer * sc_buf)
 		b_retract_to_mark(sc_buf); /* Retract to start of lexeme */
 		if (as_table[state] == ASWR)
 			b_retract(sc_buf);
-		while (b_getc_offset(sc_buf) < (state == ES ? lexend : lexend - 1))
+		while (b_getc_offset(sc_buf) < (state == SVID_T ? lexend : lexend - 1))
 		{
 			if(!(b_addc(lex_buf, c = b_getc(sc_buf))))
 				{ scerrnum = 100; t = runError(); return t; } /* process runtime error */
@@ -407,8 +410,8 @@ Token aa_func03(char lexeme[]) {
 	t.code = SVID_T; /* set token code to string variable */
 	/* append '%' to end of string variable identifier, as well as a '\0', 
 	 * checking to ensure variable name is of proper length */
-	t.attribute.err_lex[strlen(lexeme) >= VID_LEN-1 ? VID_LEN-1 : strlen(lexeme)] = '%';
-	t.attribute.err_lex[strlen(lexeme) >= VID_LEN ? VID_LEN  : strlen(lexeme) + 1] = '\0';
+	t.attribute.err_lex[strlen(lexeme) >= VID_LEN-1 ? VID_LEN-1 : strlen(lexeme) - 1] = '%';
+	t.attribute.err_lex[strlen(lexeme) >= VID_LEN ? VID_LEN  : strlen(lexeme)] = '\0';
 	t.attribute.vid_offset = st_install(sym_table, t.attribute.err_lex, 'S', line); /* install lexeme into symbol table */
 	if (t.attribute.vid_offset == R_FAIL_1) /* Called st_store if symbol table is full */
 	{
@@ -572,7 +575,8 @@ short getString(Buffer* tsc_Buf, short counter)
 	char c = b_getc(tsc_Buf); /* Current char from buffer */
 	if (c == '\n' || c == 'CR') /* Increment line count on new line*/
 		++line;
-	if (c == SEOF || c == SEOF_2) { b_retract_to_mark(tsc_Buf); return -1; }
+	if ((unsigned char) c == SEOF || c == SEOF_2) 
+	{ b_retract_to_mark(tsc_Buf); return -1; }
 	if (c != '"') { return getString(tsc_Buf, ++counter); }
 	else if (counter == 0) { return counter; }
 	b_retract_to_mark(tsc_Buf);
@@ -632,7 +636,7 @@ Token errorString(Buffer* tsc_Buf)
 	for (counter; counter < ERR_LEN; ++counter)
 		errToken.attribute.err_lex[counter] = '.';
 	errToken.attribute.err_lex[ERR_LEN] = '\0'; /* Appended end of string character */
-	while (b_getc(tsc_Buf)) {} /* Loop through the remaining chars in the string */
+	while (b_getc(tsc_Buf) != R_FAIL_1) {} /* Loop through the remaining chars in the string */
 	return errToken;
 }
 
